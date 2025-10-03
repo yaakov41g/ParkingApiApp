@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Voice Recorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    #recordBtn {
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #recordBtn.recording {
+      background-color: red;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255,0,0,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+    }
+    #downloadLink {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Voice Recorder</h1>
+  <button id="recordBtn">Start Recording</button>
+  <a id="downloadLink" href="#" download="user_response.webm">Download Recording</a>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const recordBtn = document.getElementById("recordBtn");
+    const downloadLink = document.getElementById("downloadLink");
+
+    recordBtn.addEventListener("click", async () => {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            downloadLink.href = audioUrl;
+            downloadLink.style.display = 'inline-block';
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          recordBtn.textContent = "Stop Recording";
+          recordBtn.classList.add("recording");
+        } catch (err) {
+          alert("Microphone access denied.");
+          console.error(err);
+        }
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordBtn.textContent = "Start Recording";
+        recordBtn.classList.remove("recording");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<script>
+            var uploadDir = Path.Combine("C:\\ASP\\ParkingApiApp\\Uploads");
+            Directory.CreateDirectory(uploadDir); // Ensure it exists
+            var tempPath = Path.Combine(uploadDir, file.FileName);
+
+            //var tempPath = Path.Combine(Path.GetTempPath(), file.FileName);
+            using (var stream = new FileStream(tempPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+                _logger.LogInformation($"Saving uploaded file to ###############: {tempPath}");
+            }
+            var player = new SoundPlayer(tempPath);
+            player.PlaySync(); // blocks until playback finishes
+</script>
