@@ -20,6 +20,7 @@ builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnection));
 builder.Services.AddSingleton<CityCollectionAccess>();
 builder.Services.AddSingleton<VoiceGeneratorService>();
 builder.Services.AddSingleton<SpeechToTextService>();
+builder.Services.AddScoped<AudioConversionService>();
 
 //builder.Services.AddDbContext<AppDbContext>(options =>
 //   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

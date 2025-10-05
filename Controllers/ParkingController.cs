@@ -9,13 +9,15 @@ namespace ParkingApiApp.Controllers
     [Route("api/[controller]")]
     public class ParkingController : ControllerBase
     {
+        private readonly AudioConversionService _audioConverter;
         private readonly ILogger<ParkingController> _logger;
         private readonly VoiceGeneratorService _tts;
         private readonly SpeechToTextService _speechService;
-        public ParkingController(VoiceGeneratorService tts, SpeechToTextService speechService, ILogger<ParkingController> logger)
+        public ParkingController(VoiceGeneratorService tts, SpeechToTextService speechService, ILogger<ParkingController> logger, AudioConversionService audioConverter)
         {
             _tts = tts;
             _speechService = speechService;
+            _audioConverter = audioConverter;
             _logger = logger;
         }
 
@@ -23,7 +25,7 @@ namespace ParkingApiApp.Controllers
         public IActionResult Welcome()
         {
             var audioPath = "/audio/welcome.m4a";
-            _logger.LogInformation($"############### Uploaded welcome file from  : {audioPath}");
+           // _logger.LogInformation($"############### Uploaded welcome file from  : {audioPath}");
 
             var nextEndpoint = "/api/parking/listen-city";
             return Ok(new { audio = audioPath, next = nextEndpoint });
@@ -33,6 +35,10 @@ namespace ParkingApiApp.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ListenCity(IFormFile file)
         {
+            //if (_audioConverter == null)
+                //throw new Exception("AudioConversionService is not initialized.");
+
+            //_logger.LogInformation("############### Wellcome to LISTENCITY");
             var transcript = string.Empty;
             if (file == null || file.Length == 0)
                 return BadRequest("No audio file received.");
@@ -49,15 +55,22 @@ namespace ParkingApiApp.Controllers
             using (var stream = new FileStream(tempPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
-                _logger.LogInformation($"Saving uploaded file to ###############: {tempPath}");
+               // _logger.LogInformation($"Saving uploaded file to ###############: {tempPath}");
             }
-            var player = new SoundPlayer(tempPath);
-            player.PlaySync(); // blocks until playback finishes
+            //var player = new SoundPlayer(tempPath);
+            //player.PlaySync(); // blocks until playback finishes
 
             // Transcribe using Google Speech-to-Text
             try
             {
-                transcript = await _speechService.TranscribeHebrewAsync(tempPath);
+                //_logger.LogInformation($"################## Starting audio conversion for: {tempPath}");
+                var convertedPath = await _audioConverter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
+
+                //var converter = new AudioConversionService(_logger);
+                //var convertedPath = await converter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
+               // _logger.LogInformation($"################## tempPath: {tempPath}");
+
+                transcript = await _speechService.TranscribeHebrewAsync(convertedPath);
             }
             catch (Exception ex)
             {
@@ -65,6 +78,7 @@ namespace ParkingApiApp.Controllers
                 //_logger.LogError(ex, "Error during transcription");
                 return StatusCode(500, "Error during transcription");
             }
+            _logger.LogInformation($"################## CITY: {transcript}");
             return Ok(new { city = transcript });
         }
 
@@ -96,27 +110,27 @@ namespace ParkingApiApp.Controllers
             return Ok(new { audio = finalPath });
         }
 
-        [HttpGet("play")]
-        public IActionResult PlayAudio()
-        {
-            var filePath = Path.Combine("C:\\ASP\\ParkingApiApp\\Uploads", "sample.wav");
+        //[HttpGet("play")]//sample endpoint to play audio on server machine
+        //public IActionResult PlayAudio()
+        //{
+        //    var filePath = Path.Combine("C:\\ASP\\ParkingApiApp\\Uploads", "sample.wav");
 
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("Audio file not found.");
+        //    if (!System.IO.File.Exists(filePath))
+        //        return NotFound("Audio file not found.");
 
-            try
-            {
-                //_logger.LogInformation($"Upload file from ###############: {filePath}");
+        //    try
+        //    {
+        //        //_logger.LogInformation($"Upload file from ###############: {filePath}");
 
-                var player = new SoundPlayer(filePath);
-                player.PlaySync(); // blocks until playback finishes
-                return Ok("Audio played successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error playing audio: {ex.Message}");
-            }
-        }
+        //        var player = new SoundPlayer(filePath);
+        //        player.PlaySync(); // blocks until playback finishes
+        //        return Ok("Audio played successfully.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Error playing audio: {ex.Message}");
+        //    }
+        //}
     }
 }
 
