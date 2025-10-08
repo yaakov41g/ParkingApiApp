@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
 using ParkingApiApp.Data;
 using ParkingApiApp.Models;
@@ -19,7 +20,8 @@ var mongoConnection = builder.Configuration.GetConnectionString("MongoDb");
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnection));
 builder.Services.AddSingleton<CityCollectionAccess>();
 builder.Services.AddSingleton<VoiceGeneratorService>();
-builder.Services.AddSingleton<SpeechToTextService>();
+builder.Services.AddSingleton<SpeechToTextService>(); 
+builder.Services.AddSingleton<TexToSpeechService>();
 builder.Services.AddScoped<AudioConversionService>();
 
 //builder.Services.AddDbContext<AppDbContext>(options =>
@@ -40,6 +42,13 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddSingleton<IMongoCollection<City>>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var db = client.GetDatabase("ParkingDB"); // Make sure this matches your actual DB name
+    return db.GetCollection<City>("cities");  // Make sure this matches your actual collection name
+});
+
 var app = builder.Build();
 // Use CORS
 app.UseCors("AllowLocalhost");
@@ -49,6 +58,8 @@ using (var scope = app.Services.CreateScope())
     var db = mongoClient.GetDatabase("ParkingDB");
     await Seeder.SeedCitiesAsync(db.GetCollection<City>("cities"));
 }
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
