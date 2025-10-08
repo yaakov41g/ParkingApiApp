@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Tel Aviv",
+    "zones": ["North", "Center", "South"]
+  },
+  {
+    "name": "Jerusalem",
+    "zones": ["East", "West", "Old City"]
+  },
+  {
+    "name": "Haifa",
+    "zones": ["Downtown", "Carmel", "Bat Galim"]
+  },
+  {
+    "name": "Beersheba",
+    "zones": ["Ramot", "Negev", "Old City", "Gimel", "Nahal Ashan"]
+  },
+  {
+    "name": "Eilat",
+    "zones": ["Tourist Zone", "North Beach", "City Center"]
+  },
+  {
+    "name": "Netanya",
+    "zones": ["Kiryat Hasharon", "City Center", "South Netanya"]
+  },
+  {
+    "name": "Ashdod",
+    "zones": ["Alef", "Bet", "Gimmel", "Dalet", "Heh"]
+  },
+  {
+    "name": "Rishon LeZion",
+    "zones": ["West", "East", "Industrial Zone"]
+  },
+  {
+    "name": "Nazareth",
+    "zones": ["Old City", "Nazareth Illit", "Downtown"]
+  },
+  {
+    "name": "Tiberias",
+    "zones": ["Lakeside", "City Center", "Upper Tiberias"]
+  }
+]

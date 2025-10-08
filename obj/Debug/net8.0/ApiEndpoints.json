@@ -1,0 +1,65 @@
+[
+  {
+    "ContainingType": "ParkingApiApp.Controllers.AdminController",
+    "Method": "ResetCities",
+    "RelativePath": "api/Admin/reset",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "source",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ParkingApiApp.Controllers.ParkingController",
+    "Method": "AreaResponse",
+    "RelativePath": "api/Parking/area-response",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "city",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "area",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ParkingApiApp.Controllers.ParkingController",
+    "Method": "ListenCity",
+    "RelativePath": "api/Parking/listen-city",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ParkingApiApp.Controllers.ParkingController",
+    "Method": "Welcome",
+    "RelativePath": "api/Parking/welcome",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
