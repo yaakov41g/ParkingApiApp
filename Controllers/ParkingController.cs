@@ -1,4 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
+ï»¿using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+//using ParkingApiApp.Data;
+using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
 using System.Media;
@@ -9,24 +12,27 @@ namespace ParkingApiApp.Controllers
     [Route("api/[controller]")]
     public class ParkingController : ControllerBase
     {
+        private readonly TexToSpeechService _tts;
+        private readonly IMongoCollection<City> _cityCollection;
         private readonly AudioConversionService _audioConverter;
         private readonly ILogger<ParkingController> _logger;
-        private readonly VoiceGeneratorService _tts;
+        //private readonly VoiceGeneratorService _tts;
         private readonly SpeechToTextService _speechService;
-        public ParkingController(VoiceGeneratorService tts, SpeechToTextService speechService, ILogger<ParkingController> logger, AudioConversionService audioConverter)
+
+        public ParkingController(SpeechToTextService speechService, ILogger<ParkingController> logger, AudioConversionService audioConverter, IMongoCollection<City> cityCollection, TexToSpeechService tts)
         {
             _tts = tts;
             _speechService = speechService;
             _audioConverter = audioConverter;
             _logger = logger;
+            _cityCollection = cityCollection;
         }
 
         [HttpGet("welcome")]
         public IActionResult Welcome()
         {
+            _logger.LogInformation("################# Welcome endpoint hit.");
             var audioPath = "/audio/welcome.m4a";
-           // _logger.LogInformation($"############### Uploaded welcome file from  : {audioPath}");
-
             var nextEndpoint = "/api/parking/listen-city";
             return Ok(new { audio = audioPath, next = nextEndpoint });
         }
@@ -35,10 +41,6 @@ namespace ParkingApiApp.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ListenCity(IFormFile file)
         {
-            //if (_audioConverter == null)
-                //throw new Exception("AudioConversionService is not initialized.");
-
-            //_logger.LogInformation("############### Wellcome to LISTENCITY");
             var transcript = string.Empty;
             if (file == null || file.Length == 0)
                 return BadRequest("No audio file received.");
@@ -51,85 +53,70 @@ namespace ParkingApiApp.Controllers
             Directory.CreateDirectory(uploadDir); // Ensure it exists
             var tempPath = Path.Combine(uploadDir, file.FileName);
 
-            //var tempPath = Path.Combine(Path.GetTempPath(), file.FileName);
             using (var stream = new FileStream(tempPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
-               // _logger.LogInformation($"Saving uploaded file to ###############: {tempPath}");
             }
-            //var player = new SoundPlayer(tempPath);
-            //player.PlaySync(); // blocks until playback finishes
-
-            // Transcribe using Google Speech-to-Text
             try
             {
-                //_logger.LogInformation($"################## Starting audio conversion for: {tempPath}");
-                var convertedPath = await _audioConverter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
-
-                //var converter = new AudioConversionService(_logger);
-                //var convertedPath = await converter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
-               // _logger.LogInformation($"################## tempPath: {tempPath}");
-
-                transcript = await _speechService.TranscribeHebrewAsync(convertedPath);
+                var Decompressed = await _audioConverter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
+                transcript = await _speechService.TranscribeHebrewAsync(Decompressed);
             }
             catch (Exception ex)
             {
                 ConsolePager.PageText($"Error during transcription:\n{ex}");
-                //_logger.LogError(ex, "Error during transcription");
                 return StatusCode(500, "Error during transcription");
             }
-            _logger.LogInformation($"################## CITY: {transcript}");
             return Ok(new { city = transcript });
         }
 
-        [HttpGet("area-response")]
-        public async Task<IActionResult> AreaResponse([FromQuery] string city, [FromQuery] string area)
+        [HttpPost("speak-city")]
+        public async Task<IActionResult> SpeakCity([FromBody] string CityName)
         {
-            string? matchedArea = area?.Trim().ToLower() switch
-            {
-                var a when a.Contains("north") => "öôåï",
-                var a when a.Contains("center") => "îøëæ",
-                var a when a.Contains("south") => "ãøåí",
-                _ => null
-            };
+            if (string.IsNullOrWhiteSpace(CityName))
+                return BadRequest("Text is required.");
 
-            if (matchedArea == null)
+            try
             {
-                var errorPath = await _tts.GenerateVoiceAsync(
-                    "îöèòøéí, ìà äöìçğå ìæäåú àú äàæåø. àğà ğñå ùåá.",
-                    "error_area"
-                );
-                return Ok(new { audio = errorPath });
+                var message = $"×–×™×”×™× ×• ××ª ×”×¢×™×¨ {CityName}. ×× ×–×” × ×›×•×Ÿ, ×”×§×© 1.";
+
+                // Use your existing TTS service
+                var filePath = await _tts.GenerateHebrewVoiceAsync(message); // returns full path
+
+                // Convert to relative path for client
+                var fileName = Path.GetFileName(filePath);
+                var relativePath = $"/TTS/{fileName}";
+                return Ok(new { audio = relativePath });
             }
-
-            var finalPath = await _tts.GenerateVoiceAsync(
-                $"áçøúí àú äòéø {city} åäàæåø {matchedArea}. äîğåé äçåãùé ùìëí éèåôì àåèåîèéú. úåãä øáä.",
-                "final_response"
-            );
-
-            return Ok(new { audio = finalPath });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during TTS generation");
+                return StatusCode(500, "Error during TTS generation");
+            }
         }
 
-        //[HttpGet("play")]//sample endpoint to play audio on server machine
-        //public IActionResult PlayAudio()
+        //[HttpGet("area-response")]
+        //public async Task<IActionResult> ListenArea([FromQuery] string city)
         //{
-        //    var filePath = Path.Combine("C:\\ASP\\ParkingApiApp\\Uploads", "sample.wav");
-
-        //    if (!System.IO.File.Exists(filePath))
-        //        return NotFound("Audio file not found.");
-
-        //    try
+        //    var cityDoc = await _cityCollection.Find(c => c.Name == city).FirstOrDefaultAsync();
+        //    if (cityDoc == null)
         //    {
-        //        //_logger.LogInformation($"Upload file from ###############: {filePath}");
+        //        //var errorPath = await _tts.GenerateHebrewVoiceAsync(
+        //        //    "××¦×˜×¢×¨×™×, ×œ× ×”×¦×œ×—× ×• ×œ××¦×•× ××ª ×”×¢×™×¨. ×× × × ×¡×• ×©×•×‘.",
+        //        //    "error_city"
+        //        //);
+        //     //   return Ok(new { audio = errorPath });
+        //    }
 
-        //        var player = new SoundPlayer(filePath);
-        //        player.PlaySync(); // blocks until playback finishes
-        //        return Ok("Audio played successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Error playing audio: {ex.Message}");
-        //    }
+        //    var zones = cityDoc.Zones; // Assuming Zones is a list or string field in the city document
+        //    var zoneText = string.Join(", ", zones); // Format zones nicely
+
+        //    var finalPath = await _tts.GenerateVoiceAsync(
+        //        $"×‘×—×¨×ª× ××ª ×”×¢×™×¨ {city} ×•×”××–×•×¨{(zones.Count > 1 ? "×™×" : "")} {zoneText}. ×”×× ×•×™ ×”×—×•×“×©×™ ×©×œ×›× ×™×˜×•×¤×œ ××•×˜×•××˜×™×ª. ×ª×•×“×” ×¨×‘×”.",
+        //        "final_response"
+        //    );
+
+        //    return Ok(new { audio = finalPath });
         //}
     }
 }
@@ -142,7 +129,8 @@ namespace ParkingApiApp.Controllers
 
 
 ////////////////////////////////////////////////////////////////
-//This version uses Twilio's built-in speech recognition instead of Azure's TTS
+//This version uses Twilio's built-in speech recognition instead of Azure'sGoogle cloud TTS. Why I didn't use Twilio?
+//Because I don't have international phone number, and I can't test it properly.  
 //
 //using Microsoft.AspNetCore.Mvc;
 //using Twilio.TwiML;
@@ -228,7 +216,7 @@ namespace ParkingApiApp.Controllers
 //                return Content(response.ToString(), "text/xml");
 //            }
 
-//            response.Say($"You selected {city} – {matchedArea}. Your monthly parking subscription will be processed automatically. Thank you.");
+//            response.Say($"You selected {city} â€“ {matchedArea}. Your monthly parking subscription will be processed automatically. Thank you.");
 //            return Content(response.ToString(), "text/xml");
 //        }
 //    }
