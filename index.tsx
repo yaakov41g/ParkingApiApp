@@ -8,10 +8,6 @@ const appName = appConfig.expo.name;
 
 export default function VoiceCityRecognizer() {
     const [recording, setRecording] = useState<Audio.Recording | null>(null);
-    //const [cityName, setCityName] = useState('');
-    //const [modalVisible, setModalVisible] = useState(false);
-    //console.log("##################" );
-
     const startParkingFlow = async () => {
         try {
             // Step 1: Fetch welcome audio and next endpoint
@@ -22,31 +18,21 @@ export default function VoiceCityRecognizer() {
                 console.error('########### Server error:', errorText);
                 return; // Stop the flow if server failed
             }
-
             const result = await response.json();// here we get { audio: string, next: string } 
-
             const audioUrl = `http://192.168.1.2:5203${result.audio}`; // full URL to audio
             const nextEndpoint = result.next;
             // Step 2: Play welcome audio
-
             const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
-            console.log("################## AudioUrl", audioUrl);
-
-            await sound.playAsync();
-            sound.setOnPlaybackStatusUpdate((status) => {
+            // Set up the listener first
+            sound.setOnPlaybackStatusUpdate(async (status) => {
                 if (status.isLoaded && status.didJustFinish) {
-                    sound.unloadAsync();
-                }
-            });
-
-            await sound.playAsync();
-            await sound.setOnPlaybackStatusUpdate(async (status) => {
-                if (status.isLoaded && status.didJustFinish) {
-                    await sound.unloadAsync(); // Unload sound to free resources
-                    // Step 3: Start recording after welcome finishes
+                    await sound.unloadAsync();
                     startRecording(`http://192.168.1.2:5203${nextEndpoint}`);
                 }
             });
+
+            // Then start playback
+            await sound.playAsync();
         } catch (err) {
             console.error('Error in process:', err);
         }
@@ -108,7 +94,7 @@ export default function VoiceCityRecognizer() {
 
     const sendToBackend = async (uri: string, endpoint: string) => {
         try {
-            console.log("################## Uri :", uri)
+            //console.log("################## Uri :", uri)
             const formData = new FormData();
             formData.append('file', {
                 uri,
@@ -140,30 +126,31 @@ export default function VoiceCityRecognizer() {
     };//sendToBackend
 
     // Send city name to backend for TTS conversion
-    const sendToTTS = async (text: string) => {
+    const sendToTTS = async (cityName: string) => {
         try {
-            const response = await fetch('https://your-backend.com/tts', {
+            const message = cityName;
+
+            const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-city', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    text: `זיהינו את העיר ${text}. אם זה נכון, הקש 1.`,
-                    languageCode: 'he-IL', // Hebrew language
-                    voiceName: 'he-IL-Wavenet-A', // Optional: specific Hebrew voice
-                }),
+                body: JSON.stringify(message), // Send raw string as JSON
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('TTS Server Error:', errorText);
+                return;
+            }
+
             const result = await response.json();
-            const audioUrl = result.audio; // URL of generated voice file
 
-            // Play the audio using expo-av
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: audioUrl },
-                { shouldPlay: true }
-            );
+            const audioUrl = `http://192.168.1.2:5203${result.audio}`;
+            console.log("################## AudioUrl :", audioUrl)
 
-            // Unload sound after playback finishes
+            const { sound } = await Audio.Sound.createAsync({ uri: audioUrl }, { shouldPlay: true });
+
             sound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded && status.didJustFinish) {
                     sound.unloadAsync();
@@ -171,19 +158,26 @@ export default function VoiceCityRecognizer() {
             });
 
         } catch (err) {
-            console.error('Error sending text to TTS:', err);
+            console.error('Error sending city name to TTS:', err);
         }
     };
-
 
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.bigButton} onPress={startParkingFlow}>
-                <Text style={styles.buttonText}>Start Parking</Text>
+                <Text style={styles.squareButtonText}>Start Parking</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.bigButton} onPress={stopRecording}>
-                <Text style={styles.buttonText}>עצור ושלח לשרת</Text>
+                <Text style={styles.squareButtonText}>עצור ושלח לשרת</Text>
+            </TouchableOpacity>
+
+            {/* New Buttons */}
+            <TouchableOpacity style={styles.confirmButton} /*{onPress={confirmCity}}*/>
+                <Text style={styles.squareButtonText}>1 - אישור</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.repeatButton}/*{{onPress={repeatTTS}}}*/>
+                <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
             </TouchableOpacity>
         </View>
     );
