@@ -12,6 +12,8 @@ namespace ParkingApiApp.Controllers
     [Route("api/[controller]")]
     public class ParkingController : ControllerBase
     {
+        private readonly TranslationService _translationService;
+        private readonly CityService _cityService;
         private readonly TexToSpeechService _tts;
         private readonly IMongoCollection<City> _cityCollection;
         private readonly AudioConversionService _audioConverter;
@@ -19,19 +21,23 @@ namespace ParkingApiApp.Controllers
         //private readonly VoiceGeneratorService _tts;
         private readonly SpeechToTextService _speechService;
 
-        public ParkingController(SpeechToTextService speechService, ILogger<ParkingController> logger, AudioConversionService audioConverter, IMongoCollection<City> cityCollection, TexToSpeechService tts)
+        public ParkingController(SpeechToTextService speechService, ILogger<ParkingController> logger, 
+            AudioConversionService audioConverter, IMongoCollection<City> cityCollection, 
+            TexToSpeechService tts, CityService cityService, TranslationService translationService)
         {
             _tts = tts;
             _speechService = speechService;
             _audioConverter = audioConverter;
             _logger = logger;
             _cityCollection = cityCollection;
+            _cityService = cityService;
+            _translationService = translationService;
         }
 
         [HttpGet("welcome")]
         public IActionResult Welcome()
         {
-            _logger.LogInformation("################# Welcome endpoint hit.");
+            //_logger.LogInformation("################# Welcome endpoint hit.");
             var audioPath = "/audio/welcome.m4a";
             var nextEndpoint = "/api/parking/listen-city";
             return Ok(new { audio = audioPath, next = nextEndpoint });
@@ -78,7 +84,7 @@ namespace ParkingApiApp.Controllers
 
             try
             {
-                var message = $"זיהינו את העיר {CityName}. אם זה נכון, הקש 1.";
+                var message = $"זִיהִינו את העיר {CityName} .אם זה נכון, הַקֵשׁ אישור אם לא הַקֵשׁ אֱמוֹר שׁוּב.";
 
                 // Use your existing TTS service
                 var filePath = await _tts.GenerateHebrewVoiceAsync(message); // returns full path
@@ -95,129 +101,29 @@ namespace ParkingApiApp.Controllers
             }
         }
 
-        //[HttpGet("area-response")]
-        //public async Task<IActionResult> ListenArea([FromQuery] string city)
-        //{
-        //    var cityDoc = await _cityCollection.Find(c => c.Name == city).FirstOrDefaultAsync();
-        //    if (cityDoc == null)
-        //    {
-        //        //var errorPath = await _tts.GenerateHebrewVoiceAsync(
-        //        //    "מצטערים, לא הצלחנו למצוא את העיר. אנא נסו שוב.",
-        //        //    "error_city"
-        //        //);
-        //     //   return Ok(new { audio = errorPath });
-        //    }
+        [HttpPost("validate-city")]
+        public async Task<IActionResult> ValidateCity([FromBody] string cityName)
+        {
 
-        //    var zones = cityDoc.Zones; // Assuming Zones is a list or string field in the city document
-        //    var zoneText = string.Join(", ", zones); // Format zones nicely
+            if (string.IsNullOrWhiteSpace(cityName))
+                return BadRequest("City name is required.");
+           // _logger.LogInformation("################# CityName " + cityName);
 
-        //    var finalPath = await _tts.GenerateVoiceAsync(
-        //        $"בחרתם את העיר {city} והאזור{(zones.Count > 1 ? "ים" : "")} {zoneText}. המנוי החודשי שלכם יטופל אוטומטית. תודה רבה.",
-        //        "final_response"
-        //    );
+            try
+            {
+                var city = await _cityService.FindCity(cityName);
+                //_logger.LogInformation("################# _cityService " + _cityService);
 
-        //    return Ok(new { audio = finalPath });
-        //}
+                if (city == null)
+                    return NotFound("City not found.");
+                //_logger.LogInformation("################# City "+ city);
+                return Ok(new { city = city.Name.ToString(), zones = city.Zones });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating city");
+                return StatusCode(500, "Server error");
+            }
+        }
     }
 }
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////
-//This version uses Twilio's built-in speech recognition instead of Azure'sGoogle cloud TTS. Why I didn't use Twilio?
-//Because I don't have international phone number, and I can't test it properly.  
-//
-//using Microsoft.AspNetCore.Mvc;
-//using Twilio.TwiML;
-//using System;
-//using Twilio.TwiML.Voice;
-
-//namespace ParkingVoiceApp.Controllers
-//{
-//    [ApiController]
-//    [Route("api/[controller]")]
-//    public class ParkingController : ControllerBase
-//    {
-//        [HttpPost]
-//        public IActionResult StartCall()
-//        {
-//            var response = new VoiceResponse();
-
-//            var gather = new Gather(
-//                input: new[] { Gather.InputEnum.Speech },
-//                action: new Uri("/api/parking/city", UriKind.Relative),
-//                method: "POST",
-//                timeout: 5
-//            );
-//            gather.Say("Welcome to Smart Parking. Please say the name of your city after the beep.");
-
-//            response.Append(gather);
-//            response.Say("We didn't receive any input. Goodbye.");
-
-//            return Content(response.ToString(), "text/xml");//Here Twillio will prompt the user to say the city name
-//        }
-
-//        [HttpPost("city")]
-//        public IActionResult HandleCity([FromForm] string SpeechResult)
-//        {
-//            var response = new VoiceResponse();
-//            string? city = SpeechResult?.Trim().ToLower();
-
-//            string? matchedCity = city switch
-//            {
-//                var c when c.Contains("tel aviv") => "Tel Aviv",
-//                var c when c.Contains("jerusalem") => "Jerusalem",
-//                var c when c.Contains("haifa") => "Haifa",
-//                _ => null
-//            };
-
-//            if (matchedCity == null)
-//            {
-//                response.Say("Sorry, we couldn't recognize the city. Please try again later.");
-//                return Content(response.ToString(), "text/xml");
-//            }
-
-//            var gather = new Gather(
-//                input: new[] { Gather.InputEnum.Speech },
-//                action: new Uri($"https://skiagraphical-kathey-precise.ngrok-free.dev/api/parking/area?city={matchedCity}"/*, UriKind.Relative*/),
-//                method: "POST",
-//                timeout: 5
-//            );
-//            gather.Say($"You selected {matchedCity}. Now say your area: North, Center, or South.");
-
-//            response.Append(gather);
-//            response.Say("We didn't receive any input. Goodbye.");
-
-//            return Content(response.ToString(), "text/xml");
-//        }
-
-//        [HttpPost("area")]
-//        public IActionResult HandleArea([FromQuery] string city, [FromForm] string SpeechResult)
-//        {
-//            var response = new VoiceResponse();
-//            string? area = SpeechResult?.Trim().ToLower();
-
-//            string? matchedArea = area switch
-//            {
-//                var a when a.Contains("north") => "North",
-//                var a when a.Contains("center") => "Center",
-//                var a when a.Contains("south") => "South",
-//                _ => null
-//            };
-
-//            if (matchedArea == null)
-//            {
-//                response.Say("Sorry, we couldn't recognize the area. Please try again later.");
-//                return Content(response.ToString(), "text/xml");
-//            }
-
-//            response.Say($"You selected {city} – {matchedArea}. Your monthly parking subscription will be processed automatically. Thank you.");
-//            return Content(response.ToString(), "text/xml");
-//        }
-//    }
-//}
