@@ -17,7 +17,7 @@ namespace ParkingApiApp.Services
 
         public async Task<string> ConvertToUncompressedWavAsync(string inputPath, string outputDirectory)
         {
-            _logger.LogInformation("################  Checking conversion ");
+            //_logger.LogInformation("################  Checking conversion ");
 
             var outputFileName = "converted_" + Path.GetFileName(inputPath);
             var outputPath = Path.Combine(outputDirectory, outputFileName);

@@ -6,12 +6,12 @@ using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
 using StackExchange.Redis;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Secrets/parkingapp-473913-84210e5927a9.json");
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();//Envoke
@@ -22,17 +22,14 @@ builder.Services.AddSingleton<CityCollectionAccess>();
 builder.Services.AddSingleton<VoiceGeneratorService>();
 builder.Services.AddSingleton<SpeechToTextService>(); 
 builder.Services.AddSingleton<TexToSpeechService>();
+builder.Services.AddSingleton<CityService>();
+builder.Services.AddSingleton<TranslationService>();
 builder.Services.AddScoped<AudioConversionService>();
 
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // register redis connection
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect("localhost")
-);
-builder.Services.AddScoped<CityService>();
-// Add CORS policy
+var redis = ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false");
+builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
+/// Add CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
@@ -58,7 +55,6 @@ using (var scope = app.Services.CreateScope())
     var db = mongoClient.GetDatabase("ParkingDB");
     await Seeder.SeedCitiesAsync(db.GetCollection<City>("cities"));
 }
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
