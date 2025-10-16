@@ -18,8 +18,8 @@ public class CityService
         var db = mongoClient.GetDatabase("ParkingDB");
         _cities = db.GetCollection<City>("cities");
         _cache = redis.GetDatabase();
-        _translationService = translationService;   
-        _logger = logger;   
+        _translationService = translationService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public class CityService
     /// </summary>
     public async Task<List<City>> GetCitiesAsync()
     {
-     // Step 1: Try to get cities from Redis
+        // Step 1: Try to get cities from Redis
         if (_cachedCities != null)
             return _cachedCities;
         var cached = await _cache.StringGetAsync("cities_full");
@@ -62,7 +62,7 @@ public class CityService
     public async Task<City?> FindCity(string inputName)
     {
         _cachedCities = await GetCitiesAsync();
-        _logger.LogInformation($"###### CachedCities  "+ _cachedCities); 
+        _logger.LogInformation($"###### CachedCities  " + _cachedCities);
 
         if (_cachedCities == null || !_cachedCities.Any())
             return null; // Or throw, or load from Redis if needed
