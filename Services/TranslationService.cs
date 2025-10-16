@@ -27,7 +27,7 @@ namespace ParkingApiApp.Services
             };
 
             var response = await _client.TranslateTextAsync(request);
-            _logger.LogInformation($"$$$$$$$$$$$$$ Translated text: {response.Translations[0].TranslatedText}");  
+            //_logger.LogInformation($"$$$$$$$$$$$$$ Translated text: {response.Translations[0].TranslatedText}");  
             File.AppendAllText("log.txt", $"Translated text : {response.Translations[0].TranslatedText}\n", Encoding.UTF8);  
             return response.Translations[0].TranslatedText;
         }

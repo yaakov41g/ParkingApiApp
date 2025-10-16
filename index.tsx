@@ -3,11 +3,15 @@ import { View, Text,/* Modal,*/ TouchableOpacity, AppRegistry } from 'react-nati
 import { Audio } from 'expo-av';
 import appConfig from '../../app.json';
 import styles from './styles';
-
+//import { transliterate } from 'hebrew-transliteration';
 const appName = appConfig.expo.name;
 
 export default function VoiceCityRecognizer() {
+    const [cityNane, setTransc] = useState(''); // Store recognized city name //amazing to see how copilot suggests this.
+    const [cityStatus, setCityStatus] = useState('');// Store status of city validation 
+    const [endPoint, setEndpoint] = useState(''); // Store recognized city name //amazing to see how copilot suggests this.
     const [recording, setRecording] = useState<Audio.Recording | null>(null);
+
     const startParkingFlow = async () => {
         try {
             // Step 1: Fetch welcome audio and next endpoint
@@ -27,10 +31,10 @@ export default function VoiceCityRecognizer() {
             sound.setOnPlaybackStatusUpdate(async (status) => {
                 if (status.isLoaded && status.didJustFinish) {
                     await sound.unloadAsync();
-                    startRecording(`http://192.168.1.2:5203${nextEndpoint}`);
+                    setEndpoint(`http://192.168.1.2:5203${nextEndpoint}`)
+                    startRecording();
                 }
             });
-
             // Then start playback
             await sound.playAsync();
         } catch (err) {
@@ -38,7 +42,7 @@ export default function VoiceCityRecognizer() {
         }
     };
 
-    const startRecording = async (endpoint: string) => {
+    const startRecording = async () => {
         try {
             await Audio.requestPermissionsAsync();
             await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
@@ -71,7 +75,7 @@ export default function VoiceCityRecognizer() {
             await newRecording.startAsync();
             setRecording(newRecording);
             // Save endpoint for later
-            (newRecording as any).endpoint = endpoint;
+            (newRecording as any).endpoint = endPoint;//Why is this needed? don't know.
         } catch (err) {
             console.error('Error at recording start:', err);
         }
@@ -81,10 +85,10 @@ export default function VoiceCityRecognizer() {
         try {
             if (!recording) return;
             await recording.stopAndUnloadAsync();
-            const uri = recording.getURI();
-            const endpoint = (recording as any).endpoint || 'http://192.168.1.2:5203/api/Parking/listen-city';
+            const uri = recording.getURI();// local file uri
+            setEndpoint('http://192.168.1.2:5203/api/Parking/listen-city');//
             if (uri) {
-                sendToBackend(uri, endpoint);
+                sendToBackend(uri, endPoint);
             }
             setRecording(null);
         } catch (err) {
@@ -94,7 +98,6 @@ export default function VoiceCityRecognizer() {
 
     const sendToBackend = async (uri: string, endpoint: string) => {
         try {
-            //console.log("################## Uri :", uri)
             const formData = new FormData();
             formData.append('file', {
                 uri,
@@ -115,21 +118,18 @@ export default function VoiceCityRecognizer() {
                 return;
             }
             const result = await response.json();
-            console.log('Google status:', JSON.stringify(result, null, 2));
             const transcript = result.city || 'לא זוהתה עיר';
-            //setCityName(transcript);
-            //setModalVisible(true);
-            sendToTTS(transcript); 
+            const message = `זִיהִינו את העיר ${transcript}. אם זה נכון, הַקֵשׁ אישור. אם לא, הַקֵשׁ אֱמוֹר שׁוּב.`;
+            sendToTTS(message);
+            setTransc(transcript);//again, amazing how copilot suggests this.
         } catch (err) {
             console.error('Error while sending the voice file:', err);
         }
     };//sendToBackend
 
     // Send city name to backend for TTS conversion
-    const sendToTTS = async (cityName: string) => {
+    const sendToTTS = async (message: string) => {
         try {
-            const message = cityName;
-
             const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-city', {
                 method: 'POST',
                 headers: {
@@ -145,12 +145,8 @@ export default function VoiceCityRecognizer() {
             }
 
             const result = await response.json();
-
-            const audioUrl = `http://192.168.1.2:5203${result.audio}`;
-            console.log("################## AudioUrl :", audioUrl)
-
+            const audioUrl = `http://192.168.1.2:5203${result.audio}`;// /TTS/audio/filename.wav
             const { sound } = await Audio.Sound.createAsync({ uri: audioUrl }, { shouldPlay: true });
-
             sound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded && status.didJustFinish) {
                     sound.unloadAsync();
@@ -159,6 +155,31 @@ export default function VoiceCityRecognizer() {
 
         } catch (err) {
             console.error('Error sending city name to TTS:', err);
+        }
+    };
+
+    const confirmCity = async () => {
+        try {
+            const response = await fetch('http://192.168.1.2:5203/api/Parking/validate-city', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cityNane),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                const voiceMessage = errorData.message || "שגיאה לא ידועה.";
+                await sendToTTS(voiceMessage); // Send to Google TTS
+                return;
+            }
+
+            const data = await response.json();
+            setCityStatus(data.message);
+            await sendToTTS(data.message); // Confirm city found   //VVVVVVVVVV
+            setTimeout(() => setCityStatus(''), 3000);
+        } catch (err) {
+            await sendToTTS("אירעה שגיאה. אנא נסה שוב בעוד רגע.");
+            console.error('Network error', err);
         }
     };
 
@@ -173,172 +194,18 @@ export default function VoiceCityRecognizer() {
             </TouchableOpacity>
 
             {/* New Buttons */}
-            <TouchableOpacity style={styles.confirmButton} /*{onPress={confirmCity}}*/>
+            <TouchableOpacity style={styles.confirmButton} onPress={confirmCity}>
                 <Text style={styles.squareButtonText}>1 - אישור</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.repeatButton}/*{{onPress={repeatTTS}}}*/>
+            <TouchableOpacity style={styles.repeatButton} onPress={startRecording}>
                 <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
             </TouchableOpacity>
+            {cityStatus !== '' && (
+                <Text style={styles.statusText}>{cityStatus}</Text>
+            )}
         </View>
     );
 }
 
-//const styles = StyleSheet.create({
-//    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-//    modal: { backgroundColor: 'white', padding: 20, margin: 40, borderRadius: 10 },
-//});
-
 AppRegistry.registerComponent(appName, () => VoiceCityRecognizer);
 
-//A web version
-
-//import React, { useState } from 'react';
-//import { View, Button, Modal, Text, StyleSheet } from 'react-native';
-
-//// Custom types for Web Speech API
-//interface SpeechRecognitionEvent extends Event {
-//    results: SpeechRecognitionResultList;
-//}
-
-//interface SpeechRecognitionErrorEvent extends Event {
-//    error: string;
-//    message: string;
-//}
-//navigator.mediaDevices.getUserMedia({ audio: true })
-//    .then(stream => console.log('🎤 Mic access granted'))
-//    .catch(err => console.error('🚫 Mic access denied:', err));
-//export default function StartParkingScreen() {
-//    const [cityName, setCityName] = useState('');
-//    const [modalVisible, setModalVisible] = useState(false);
-
-//    const playWelcomeMessage = async () => {
-//        try {
-//            const response = await fetch('http://localhost:5203/api/parking/welcome');
-//            const data = await response.json();
-
-//            const audioUrl = `http://localhost:5203${data.audio}`;
-//            const audio = new window.Audio(audioUrl);
-//            audio.crossOrigin = 'anonymous';
-//            audio.load();
-
-//            audio.onended = () => {
-//                startSpeechRecognition();
-//            };
-
-//            audio.play().catch((err) => {
-//                console.error('Playback failed:', err);
-//            });
-//        } catch (error) {
-//            console.error('Error playing welcome message:', error);
-//        }
-//    };
-
-//    const startSpeechRecognition = () => {
-//        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-//        debugger;
-
-//        if (!SpeechRecognition) {
-//            console.error('Speech Recognition not supported in this browser.');
-//            return;
-//        }
-//        console.log('SpeechRecognition: ' + SpeechRecognition);
-
-//        const recognition = new SpeechRecognition();
-//        recognition.lang = 'he-IL';
-//        recognition.interimResults = false;
-//        recognition.maxAlternatives = 1;
-//        debugger;
-//        //console.log('Recognized city name: ' + recognition);
-//        //recognition.onaudiostart = () => console.log('🎧 Audio capturing started');
-//        //recognition.onsoundstart = () => console.log('🔊 Sound detected');
-//        //recognition.onspeechstart = () => console.log('🗣️ Speech detected');
-//        //recognition.onspeechend = () => console.log('🛑 Speech ended');
-//        //recognition.onsoundend = () => console.log('🔇 Sound stopped');
-//        //recognition.onend = () => console.log('📴 Recognition ended');
-
-//        recognition.onresult = async (event: SpeechRecognitionEvent) => {
-//            const spokenText = event.results[0][0].transcript;
-//            console.log('Recognized city name:', spokenText);
-//            setCityName(spokenText);
-//            setModalVisible(true);
-
-//            try {
-//                const response = await fetch('http://localhost:5203/api/parking/listen-city', {
-//                    method: 'POST',
-//                    headers: { 'Content-Type': 'application/json' },
-//                    body: JSON.stringify({ city: spokenText }),
-//                });
-
-//                const result = await response.json();
-//                console.log('Backend response:', result);
-//            } catch (error) {
-//                console.error('Error sending city name:', error);
-//            }
-//        };
-
-//        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-//            if (event.error === 'no-speech') {
-//                console.warn('No speech detected. Please try again.');
-//                alert('לא זוהתה דיבור. נסה שוב.');
-//            } else {
-//                console.error('Speech recognition error:', event.error);
-//                alert(`שגיאה בזיהוי דיבור: ${event.error}`);
-//            }
-//        };
-
-//        recognition.start();
-//    };
-
-//    return (
-//        <View style={styles.container}>
-//            <Button title="Start Parking" onPress={playWelcomeMessage} />
-
-//            <Modal
-//                visible={modalVisible}
-//                transparent={true}
-//                animationType="fade"
-//                onRequestClose={() => setModalVisible(false)}
-//            >
-//                <View style={styles.modalOverlay}>
-//                    <View style={styles.modalContent}>
-//                        <Text style={styles.modalText}>Recognized City: {cityName}</Text>
-//                        <Button title="Close" onPress={() => setModalVisible(false)} />
-//                    </View>
-//                </View>
-//            </Modal>
-//        </View>
-//    );
-//}
-
-//const styles = StyleSheet.create({
-//    container: {
-//        flex: 1,
-//        justifyContent: 'center',
-//        alignItems: 'center',
-//    },
-//    modalOverlay: {
-//        flex: 1,
-//        backgroundColor: 'rgba(0,0,0,0.5)',
-//        justifyContent: 'center',
-//        alignItems: 'center',
-//        position: 'absolute',
-//        top: 0,
-//        left: 0,
-//        right: 0,
-//        bottom: 0,
-//        zIndex: 999,
-//    },
-//    modalContent: {
-//        backgroundColor: '#fff',
-//        padding: 24,
-//        borderRadius: 8,
-//        elevation: 10,
-//        zIndex: 1000,
-//        alignItems: 'center',
-//    }
-//,
-//    modalText: {
-//        fontSize: 18,
-//        marginBottom: 12,
-//    },
-//});

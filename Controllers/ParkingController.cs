@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-//using ParkingApiApp.Data;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
 using System.Media;
+using System.Text;
 
 namespace ParkingApiApp.Controllers
 {
@@ -18,11 +18,10 @@ namespace ParkingApiApp.Controllers
         private readonly IMongoCollection<City> _cityCollection;
         private readonly AudioConversionService _audioConverter;
         private readonly ILogger<ParkingController> _logger;
-        //private readonly VoiceGeneratorService _tts;
         private readonly SpeechToTextService _speechService;
 
-        public ParkingController(SpeechToTextService speechService, ILogger<ParkingController> logger, 
-            AudioConversionService audioConverter, IMongoCollection<City> cityCollection, 
+        public ParkingController(SpeechToTextService speechService, ILogger<ParkingController> logger,
+            AudioConversionService audioConverter, IMongoCollection<City> cityCollection,
             TexToSpeechService tts, CityService cityService, TranslationService translationService)
         {
             _tts = tts;
@@ -37,7 +36,6 @@ namespace ParkingApiApp.Controllers
         [HttpGet("welcome")]
         public IActionResult Welcome()
         {
-            //_logger.LogInformation("################# Welcome endpoint hit.");
             var audioPath = "/audio/welcome.m4a";
             var nextEndpoint = "/api/parking/listen-city";
             return Ok(new { audio = audioPath, next = nextEndpoint });
@@ -77,18 +75,15 @@ namespace ParkingApiApp.Controllers
         }
 
         [HttpPost("speak-city")]
-        public async Task<IActionResult> SpeakCity([FromBody] string CityName)
+        public async Task<IActionResult> SpeakCity([FromBody] string message)
         {
-            if (string.IsNullOrWhiteSpace(CityName))
+            if (string.IsNullOrWhiteSpace(message))
                 return BadRequest("Text is required.");
 
             try
             {
-                var message = $"זִיהִינו את העיר {CityName} .אם זה נכון, הַקֵשׁ אישור אם לא הַקֵשׁ אֱמוֹר שׁוּב.";
-
                 // Use your existing TTS service
                 var filePath = await _tts.GenerateHebrewVoiceAsync(message); // returns full path
-
                 // Convert to relative path for client
                 var fileName = Path.GetFileName(filePath);
                 var relativePath = $"/TTS/{fileName}";
@@ -104,25 +99,37 @@ namespace ParkingApiApp.Controllers
         [HttpPost("validate-city")]
         public async Task<IActionResult> ValidateCity([FromBody] string cityName)
         {
-
             if (string.IsNullOrWhiteSpace(cityName))
-                return BadRequest("City name is required.");
-           // _logger.LogInformation("################# CityName " + cityName);
-
+            {
+                return NotFound(new
+                {
+                    message = "לא שמעתי את שם העיר. אנא נסה שוב."
+                });
+            }
+            var city = await _cityService.FindCity(cityName);
+            if (city == null)
+            {
+                return NotFound(new
+                {
+                    message = "העיר לא נמצאה. אנא נסה שוב או נסה עיר אחרת."
+                });
+            }
             try
             {
-                var city = await _cityService.FindCity(cityName);
-                //_logger.LogInformation("################# _cityService " + _cityService);
-
-                if (city == null)
-                    return NotFound("City not found.");
-                //_logger.LogInformation("################# City "+ city);
-                return Ok(new { city = city.Name.ToString(), zones = city.Zones });
+                System.IO.File.AppendAllText("log.txt", $"City name : {city.Name}\n", Encoding.UTF8);
+                return Ok(new
+                {
+                    city = city.Name,
+                    message = $"העיר {city.Name} נמצאה במסד הנתונים"
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating city");
-                return StatusCode(500, "Server error");
+                //_logger.LogError(ex, "Error validating city.");   
+                return StatusCode(500, new
+                {
+                    message = "אירעה שגיאה. אנא נסה שוב בעוד רגע."
+                });
             }
         }
     }
