@@ -1,7 +1,10 @@
 under construction
 # ParkingApp 🚗  
 A voice-driven parking registration system with an ASP.NET Core backend and a React Native mobile client.
+This project was built with extensive support from AI Copilot, which generated the code. 
+My role has been to understand the code, to design and refine the system — making architectural decisions, improving the flow, and shaping the user experience.
 
+#### Development is done using Visual Studio as the primary IDE.
 ---
 
 ## 🧭 User Flow
@@ -17,16 +20,15 @@ A voice-driven parking registration system with an ASP.NET Core backend and a Re
    - The recorded audio is sent to Google Cloud Speech-to-Text (STT).  
    - The transcribed city name is extracted and sent to the mobile.
        
-### *In next versions*
-
 4. **User Confirmation**  
-   - The app gets back the detected city name and sends back, using TTS, to the user for confirmation.  
+   - The app gets back the detected city name and sends back, using TTS(Text To Speech), to the user for confirmation.  
    - The user confirms or corrects the city name.
 
 5. **City Name Validation**  
-   - The backend checks if the city exists in the MongoDB database.  
+   - The backend checks if the city exists in the Redis/MongoDB database.  
    - If needed, the name is translated using Google Cloud Translate.
 
+### *In next versions*
 6. **Zone Selection**  
    - If the city is valid, the app fetches available parking zones.  
    - The user selects a zone via the mobile UI.
