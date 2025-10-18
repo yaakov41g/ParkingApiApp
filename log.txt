@@ -1,16 +1,54 @@
-﻿Hebrew text: תל אביב
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Hebrew text: באר שבע
-Translated text : Beer Sheva
-Hebrew text: ראשון לציון
-Translated text : Rishon LeZion
+﻿
+Hebrew text: תל אביב
+Translated text : Tel Aviv
+City name : ParkingApiApp.Models.City
+Hebrew text: תל אביב
+Translated text : Tel Aviv
+City name : Tel Aviv
+
+
+
+
+
+
+Hebrew text: נתניה
+Translated text : Netanya
+City name : Netanya
+Hebrew text: חיפה
+Translated text : Haifa
+City name : Haifa
 Hebrew text: טבריה
 Translated text : Tiberias
+City name : Tiberias
+Hebrew text: נתניה
+Translated text : Netanya
+City name : Netanya
+Hebrew text: נתניה
+Translated text : Netanya
+City name : Netanya
+Hebrew text: No transcription found.
+Translated text : No transcription found.
+Hebrew text: אילת
+Translated text : Eilat
+City name : Eilat
+Hebrew text: טבריה
+Translated text : Tiberias
+City name : Tiberias
+Hebrew text: ירושלים
+Translated text : Jerusalem
+City name : Jerusalem
 Hebrew text: באר שבע
 Translated text : Beer Sheva
+City name : Beer Sheva
+Hebrew text: תל אביב
+Translated text : Tel Aviv
+City name : Tel Aviv
+Hebrew text: חיפה
+Translated text : Haifa
+City name : Haifa
+Hebrew text: ראשון לציון
+Translated text : Rishon LeZion
+City name : Rishon LeZion
+Hebrew text: נתניה
+Translated text : Netanya
+City name : Netanya
