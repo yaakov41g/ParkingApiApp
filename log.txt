@@ -52,3 +52,6 @@ City name : Rishon LeZion
 Hebrew text: נתניה
 Translated text : Netanya
 City name : Netanya
+Hebrew text: תל אביב
+Translated text : Tel Aviv
+City name : Tel Aviv

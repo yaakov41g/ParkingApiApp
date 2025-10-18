@@ -10,6 +10,7 @@
         "dependencies": {
           "Google.Cloud.Speech.V1": "3.8.0",
           "Google.Cloud.TextToSpeech.V1": "3.15.0",
+          "Google.Cloud.Translate.V3": "3.9.0",
           "Microsoft.CognitiveServices.Speech": "1.46.0",
           "MongoDB.Driver": "3.5.0",
           "StackExchange.Redis": "2.9.17",
@@ -126,6 +127,28 @@
           }
         }
       },
+      "Google.Cloud.Iam.V1/3.3.0": {
+        "dependencies": {
+          "Google.Api.Gax.Grpc": "4.11.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Google.Cloud.Iam.V1.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.3.0.0"
+          }
+        }
+      },
+      "Google.Cloud.Location/2.3.0": {
+        "dependencies": {
+          "Google.Api.Gax.Grpc": "4.11.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Google.Cloud.Location.dll": {
+            "assemblyVersion": "2.3.0.0",
+            "fileVersion": "2.3.0.0"
+          }
+        }
+      },
       "Google.Cloud.Speech.V1/3.8.0": {
         "dependencies": {
           "Google.Api.Gax.Grpc": "4.11.0",
@@ -147,6 +170,20 @@
           "lib/netstandard2.0/Google.Cloud.TextToSpeech.V1.dll": {
             "assemblyVersion": "3.15.0.0",
             "fileVersion": "3.15.0.0"
+          }
+        }
+      },
+      "Google.Cloud.Translate.V3/3.9.0": {
+        "dependencies": {
+          "Google.Api.Gax.Grpc": "4.11.0",
+          "Google.Cloud.Iam.V1": "3.3.0",
+          "Google.Cloud.Location": "2.3.0",
+          "Google.LongRunning": "3.3.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Google.Cloud.Translate.V3.dll": {
+            "assemblyVersion": "3.9.0.0",
+            "fileVersion": "3.9.0.0"
           }
         }
       },
@@ -1127,6 +1164,20 @@
       "path": "google.apis.core/1.69.0",
       "hashPath": "google.apis.core.1.69.0.nupkg.sha512"
     },
+    "Google.Cloud.Iam.V1/3.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HNPUaTwVTUQuiWjllxCzTjGjM6wL5LYhny81sdRbRTdzSUTmV5pMQHqz4L3moaApXxZuFlhpFvHXhMJBLKYTkQ==",
+      "path": "google.cloud.iam.v1/3.3.0",
+      "hashPath": "google.cloud.iam.v1.3.3.0.nupkg.sha512"
+    },
+    "Google.Cloud.Location/2.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ABQ4EM7FsOM7tx0cmlkZmHFqH1LeCf4teWPM26UT7mZJzlH4Pk8HUcyi/xEFe3l6LanNFCTHbKT+eOlQ/axkJg==",
+      "path": "google.cloud.location/2.3.0",
+      "hashPath": "google.cloud.location.2.3.0.nupkg.sha512"
+    },
     "Google.Cloud.Speech.V1/3.8.0": {
       "type": "package",
       "serviceable": true,
@@ -1140,6 +1191,13 @@
       "sha512": "sha512-gbjoRkap5+KWb3bvfh6RUrg/XqGq90REgNVydGen+39mt4h47KJyYvtmKzR4qeaaB3AT/FO9ZzcuoCxlwGu6qA==",
       "path": "google.cloud.texttospeech.v1/3.15.0",
       "hashPath": "google.cloud.texttospeech.v1.3.15.0.nupkg.sha512"
+    },
+    "Google.Cloud.Translate.V3/3.9.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UnlA2HZUhQhEDS6oMfZC9o4xaB9iowzHFQFLLIcsKqz9d6rouoAI1zyWolddRNUKwx3q4SZ+3v8GtDb6QLvd8A==",
+      "path": "google.cloud.translate.v3/3.9.0",
+      "hashPath": "google.cloud.translate.v3.3.9.0.nupkg.sha512"
     },
     "Google.LongRunning/3.3.0": {
       "type": "package",

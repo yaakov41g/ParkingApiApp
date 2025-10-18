@@ -59,6 +59,10 @@
               "target": "Package",
               "version": "[3.15.0, )"
             },
+            "Google.Cloud.Translate.V3": {
+              "target": "Package",
+              "version": "[3.9.0, )"
+            },
             "Microsoft.CognitiveServices.Speech": {
               "target": "Package",
               "version": "[1.46.0, )"
