@@ -74,7 +74,7 @@ namespace ParkingApiApp.Controllers
             return Ok(new { city = transcript });
         }
 
-        [HttpPost("speak-city")]
+        [HttpPost("speak-city")]//tommorow to change the name to speak-text
         public async Task<IActionResult> SpeakCity([FromBody] string message)
         {
             if (string.IsNullOrWhiteSpace(message))
