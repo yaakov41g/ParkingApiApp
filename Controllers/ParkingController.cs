@@ -37,13 +37,13 @@ namespace ParkingApiApp.Controllers
         public IActionResult Welcome()
         {
             var audioPath = "/audio/welcome.m4a";
-            var nextEndpoint = "/api/parking/listen-city";
+            var nextEndpoint = "/api/parking/listen-to-user";
             return Ok(new { audio = audioPath, next = nextEndpoint });
         }
 
-        [HttpPost("listen-city")]
+        [HttpPost("listen-to-user")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> ListenCity(IFormFile file)
+        public async Task<IActionResult> ListenToUser(IFormFile file)
         {
             var transcript = string.Empty;
             if (file == null || file.Length == 0)
@@ -74,8 +74,8 @@ namespace ParkingApiApp.Controllers
             return Ok(new { city = transcript });
         }
 
-        [HttpPost("speak-city")]//tommorow to change the name to speak-text
-        public async Task<IActionResult> SpeakCity([FromBody] string message)
+        [HttpPost("speak-the-message")]//tommorow to change the name to speak-text
+        public async Task<IActionResult> SpeakMessage([FromBody] string message)
         {
             if (string.IsNullOrWhiteSpace(message))
                 return BadRequest("Text is required.");

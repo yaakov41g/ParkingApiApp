@@ -1,28 +1,19 @@
-﻿import { useParkingFlow } from './hooks/useParkingFlow';
-//import React, { useState } from 'react';
-import { View, Text,/* Modal,*/ TouchableOpacity, AppRegistry } from 'react-native';
-import { Audio, Video, ResizeMode } from 'expo-av';
+﻿import { useRecordingFlow } from './hooks/useRecordingFlow';
+import { useVoiceProcessing } from './hooks/useVoiceProcessing';
+import { View, Text, Linking, TouchableOpacity, AppRegistry } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import appConfig from '../../app.json';
 import styles from './styles';
-import { Linking } from 'react-native';
-//import { transliterate } from 'hebrew-transliteration';
 const appName = appConfig.expo.name;
 
 
 export default function VoiceCityRecognizer() {
-    const {
-        cityName,
-        cityStatus,
-        isIntroPlaying,
-        startParkingFlow,
-        stopRecording,
-        startRecording,
-        confirmCity,
-    } = useParkingFlow();
+    const { cityName, cityStatus, startVoiceProcess, convertTextToSpeech, Confirm } = useVoiceProcessing();
+    const { isIntroPlaying, startParkingFlow, startRecording, stopRecording } = useRecordingFlow(startVoiceProcess);
 
     return (<View style={styles.container}>
         <TouchableOpacity style={styles.bigButton} onPress={startParkingFlow}>
-            <Text style={styles.squareButtonText}>Start Parking</Text>
+            <Text style={styles.squareButtonText}>התחל</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.bigButton} onPress={stopRecording}>
@@ -30,7 +21,7 @@ export default function VoiceCityRecognizer() {
         </TouchableOpacity>
 
         {/* New Buttons */}
-        <TouchableOpacity style={styles.confirmButton} onPress={confirmCity}>
+        <TouchableOpacity style={styles.confirmButton} onPress={Confirm}>
             <Text style={styles.squareButtonText}>1 - אישור</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.repeatButton} onPress={startRecording}>
