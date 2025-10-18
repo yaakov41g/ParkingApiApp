@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "TkniAlMTY4A=",
+  "dgSpecHash": "NKka3tkiq/4=",
   "success": true,
   "projectFilePath": "C:\\ASP\\ParkingApiApp\\ParkingApiApp.csproj",
   "expectedPackageFiles": [
@@ -12,8 +12,11 @@
     "C:\\Users\\USER\\.nuget\\packages\\google.apis\\1.69.0\\google.apis.1.69.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.apis.auth\\1.69.0\\google.apis.auth.1.69.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.apis.core\\1.69.0\\google.apis.core.1.69.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\google.cloud.iam.v1\\3.3.0\\google.cloud.iam.v1.3.3.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\google.cloud.location\\2.3.0\\google.cloud.location.2.3.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.cloud.speech.v1\\3.8.0\\google.cloud.speech.v1.3.8.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.cloud.texttospeech.v1\\3.15.0\\google.cloud.texttospeech.v1.3.15.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\google.cloud.translate.v3\\3.9.0\\google.cloud.translate.v3.3.9.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.longrunning\\3.3.0\\google.longrunning.3.3.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\google.protobuf\\3.31.1\\google.protobuf.3.31.1.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\grpc.auth\\2.71.0\\grpc.auth.2.71.0.nupkg.sha512",

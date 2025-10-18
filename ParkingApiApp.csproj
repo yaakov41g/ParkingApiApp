@@ -27,7 +27,6 @@
 
   <ItemGroup>
     <Folder Include="Audio\" />
-    <Folder Include="expo_mobile\SmartParkingApp\app\%28tabs%29\NewFolder\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

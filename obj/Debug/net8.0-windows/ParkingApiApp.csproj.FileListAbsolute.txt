@@ -153,3 +153,12 @@ C:\ASP\ParkingApiApp\obj\Debug\net8.0-windows\ParkingApiApp.genruntimeconfig.cac
 C:\ASP\ParkingApiApp\obj\Debug\net8.0-windows\ref\ParkingApiApp.dll
 C:\ASP\ParkingApiApp\obj\Debug\net8.0-windows\ParkingApiApp.sourcelink.json
 C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\Google.Cloud.TextToSpeech.V1.dll
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\Google.Cloud.Iam.V1.dll
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\Google.Cloud.Location.dll
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\Google.Cloud.Translate.V3.dll
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\android\build\generated\autolinking\autolinking.json
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\app.json
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\eas.json
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\package-lock.json
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\package.json
+C:\ASP\ParkingApiApp\bin\Debug\net8.0-windows\expo_mobile\SmartParkingApp\tsconfig.json
