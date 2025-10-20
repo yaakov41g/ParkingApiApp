@@ -74,6 +74,17 @@ const styles = StyleSheet.create({
         color: '#007AFF',
         fontSize: 16,
     },
+    input: {
+        width: '90%',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        marginBottom: 12,
+        backgroundColor: '#fff',
+        fontSize: 16,
+    },
     title: {
         fontSize: 24,
         fontWeight: '300',
