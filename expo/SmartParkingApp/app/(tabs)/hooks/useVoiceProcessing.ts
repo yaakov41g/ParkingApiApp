@@ -97,7 +97,7 @@ export function useVoiceProcessing() {
             const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(`בחרת את האזור ${selectedZone}`),
+                body: JSON.stringify(`בחרתָּ את האזור ${selectedZone}`),
             });
 
             if (!response.ok) throw new Error(await response.text());

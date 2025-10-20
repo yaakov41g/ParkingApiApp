@@ -1,4 +1,4 @@
-﻿    using Google.Cloud.Translate.V3;
+﻿using Google.Cloud.Translate.V3;
 using System.Text;
 
 namespace ParkingApiApp.Services
@@ -31,5 +31,21 @@ namespace ParkingApiApp.Services
             File.AppendAllText("log.txt", $"Translated text : {response.Translations[0].TranslatedText}\n", Encoding.UTF8);  
             return response.Translations[0].TranslatedText;
         }
+        public async Task<string> TranslateEnglishToHebrewAsync(string englishText)
+        {
+            File.AppendAllText("log.txt", $"English text: {englishText}\n", Encoding.UTF8);
+            var request = new TranslateTextRequest
+            {
+                Contents = { englishText },
+                SourceLanguageCode = "en",
+                TargetLanguageCode = "he",
+                Parent = "projects/parkingapp-473913/locations/global"
+            };
+
+            var response = await _client.TranslateTextAsync(request);
+            File.AppendAllText("log.txt", $"Translated to Hebrew: {response.Translations[0].TranslatedText}\n", Encoding.UTF8);
+            return response.Translations[0].TranslatedText;
+        }
+
     }
 }
