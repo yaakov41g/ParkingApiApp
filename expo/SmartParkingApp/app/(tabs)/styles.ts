@@ -110,5 +110,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    digitGrid: {
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    digitRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginVertical: 5,
+    },
+    digitButton: {
+        width: 60,
+        height: 60,
+        marginHorizontal: 10,
+        backgroundColor: '#eee',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: '#ccc',
+    },
+    digitText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+
 });
 export default styles;

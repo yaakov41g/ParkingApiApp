@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using MongoDB.Driver;
-using ParkingApiApp.Data;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
@@ -18,7 +17,7 @@ builder.Services.AddEndpointsApiExplorer();//Envoke
 builder.Services.AddSwaggerGen();
 var mongoConnection = builder.Configuration.GetConnectionString("MongoDb");
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnection));
-builder.Services.AddSingleton<CityCollectionAccess>();
+//builder.Services.AddSingleton<ParkingCollectionAccess>();
 //builder.Services.AddSingleton<VoiceGeneratorService>();
 builder.Services.AddSingleton<SpeechToTextService>();
 builder.Services.AddSingleton<TexToSpeechService>();

@@ -4,6 +4,8 @@ import { Audio } from 'expo-av';
 export function useVoiceProcessing() {
     const [cityName, setCityName] = useState('');
     const [cityStatus, setCityStatus] = useState('');
+    const [showDigitButtons, setShowDigitButtons] = useState(false);
+    const [zoneNames, setZoneNames] = useState<string[]>([]);
 
     const startVoiceProcess = async (uri: string, endpoint: string) => {
         try {
@@ -43,7 +45,7 @@ export function useVoiceProcessing() {
             sound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
             });
-        }  catch (err: any) {
+        } catch (err: any) {
         }
 
     };
@@ -64,13 +66,59 @@ export function useVoiceProcessing() {
 
             const data = await response.json();
             setCityStatus(data.message);
+
+            // Extract zone names from prompts like "הקש 1 ל־מזרח"
+            const rawZones = data.zones.map((z: string) => {
+                const match = z.match(/ל־(.+)$/);
+                return match ? match[1] : z;
+            });
+            setZoneNames(rawZones);
+
             await convertTextToSpeech(data.message);
-            setTimeout(() => setCityStatus(''), 3000);
+
+            // Show digit buttons after TTS
+            setShowDigitButtons(true);
         } catch (err) {
             await convertTextToSpeech("אירעה שגיאה. אנא נסה שוב בעוד רגע.");
             console.error('Error in Confirm:', err);
         }
     };
+    const HandleDigitPress = async (digit: number) => {
+        const selectedZone = zoneNames[digit - 1];
 
-    return { cityName, cityStatus, startVoiceProcess, convertTextToSpeech, Confirm };
+        if (!selectedZone) {
+            await convertTextToSpeech("אזור לא חוקי. אנא נסה שוב.");
+            return;
+        }
+
+        console.log("Zone selected:", selectedZone);
+
+        try {
+            const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(`בחרת את האזור ${selectedZone}`),
+            });
+
+            if (!response.ok) throw new Error(await response.text());
+
+            const result = await response.json();
+            const audioUrl = `http://192.168.1.2:5203${result.audio}`;
+            const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
+
+            await sound.playAsync();
+
+            // Wait ~2.5 seconds before hiding buttons and message
+            setTimeout(() => {
+                sound.unloadAsync();
+                setCityStatus('');
+                setShowDigitButtons(false);
+            }, 2500);
+        } catch (err) {
+            console.error('Error playing zone name:', err);
+            setCityStatus('');
+            setShowDigitButtons(false);
+        }
+    };
+    return { cityName, cityStatus, showDigitButtons, startVoiceProcess, convertTextToSpeech, Confirm, HandleDigitPress };
 }

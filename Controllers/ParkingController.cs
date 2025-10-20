@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
+using StackExchange.Redis;
 using System.Media;
 using System.Text;
 
@@ -34,11 +35,21 @@ namespace ParkingApiApp.Controllers
         }
 
         [HttpGet("welcome")]
-        public IActionResult Welcome()
-        {
+        public IActionResult Welcome(/*[FromServices]IConnectionMultiplexer redis*/)
+        { 
             var audioPath = "/audio/welcome.m4a";
             var nextEndpoint = "/api/parking/listen-to-user";
-            return Ok(new { audio = audioPath, next = nextEndpoint });
+
+            // Clear Redis cache for cities
+            //var db = redis.GetDatabase();
+            //await db.KeyDeleteAsync("cities_full");
+
+            return Ok(new
+            {
+                audio = audioPath,
+                next = nextEndpoint,
+                clearedKey = "cities_full"
+            });
         }
 
         [HttpPost("listen-to-user")]
@@ -106,6 +117,7 @@ namespace ParkingApiApp.Controllers
                     message = "לא שמעתי את שם העיר. אנא נסה שוב."
                 });
             }
+
             var city = await _cityService.FindCity(cityName);
             if (city == null)
             {
@@ -114,23 +126,29 @@ namespace ParkingApiApp.Controllers
                     message = "העיר לא נמצאה. אנא נסה שוב או נסה עיר אחרת."
                 });
             }
-            try
+
+            System.IO.File.AppendAllText("log.txt", $"City name : {city.Name}\n", Encoding.UTF8);
+
+            var translatedZones = new List<string>();
+
+            foreach (var zone in city.Zones)
             {
-                System.IO.File.AppendAllText("log.txt", $"City name : {city.Name}\n", Encoding.UTF8);
-                return Ok(new
-                {
-                    city = city.Name,
-                    message = $"העיר {city.Name} נמצאה במסד הנתונים"
-                });
+                var hebrewZone = await _translationService.TranslateEnglishToHebrewAsync(zone);
+                translatedZones.Add(hebrewZone);
             }
-            catch (Exception ex)
+
+            var zonePrompts = translatedZones.Select((zone, index) =>
+                $"הקש {index + 1} ל־{zone}").ToList();
+
+            var optionsMessage = string.Join(", ", zonePrompts);
+
+            return Ok(new
             {
-                //_logger.LogError(ex, "Error validating city.");   
-                return StatusCode(500, new
-                {
-                    message = "אירעה שגיאה. אנא נסה שוב בעוד רגע."
-                });
-            }
+                city = city.Name,
+                message = optionsMessage,
+                zones = zonePrompts,
+                translatedZones = translatedZones // optional for frontend
+            });
         }
     }
 }
