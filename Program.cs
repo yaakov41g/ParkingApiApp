@@ -24,6 +24,8 @@ builder.Services.AddSingleton<TexToSpeechService>();
 builder.Services.AddSingleton<CityService>();
 builder.Services.AddSingleton<TranslationService>();
 builder.Services.AddScoped<AudioConversionService>();
+builder.Services.AddSingleton<CarOwnerRegistrationService>();
+builder.Services.AddScoped<ParkingSessionService>();
 
 // register redis connection
 var redis = ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false");
@@ -43,6 +45,12 @@ builder.Services.AddSingleton<IMongoCollection<City>>(sp =>
     var client = sp.GetRequiredService<IMongoClient>();
     var db = client.GetDatabase("ParkingDB"); // Make sure this matches your actual DB name
     return db.GetCollection<City>("cities");  // Make sure this matches your actual collection name
+});
+builder.Services.AddSingleton<IMongoCollection<ParkingSessionAux>>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var db = client.GetDatabase("ParkingDB"); // Use your actual DB name
+    return db.GetCollection<ParkingSessionAux>("aux"); // Use your actual collection name
 });
 
 var app = builder.Build();

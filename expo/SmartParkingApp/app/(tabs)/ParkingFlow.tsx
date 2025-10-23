@@ -8,7 +8,7 @@ const appName = appConfig.expo.name;
 
 
 export default function VoiceCityRecognizer() {
-    const { cityName, cityStatus, showDigitButtons, startVoiceProcess, convertTextToSpeech, Confirm, HandleDigitPress } = useVoiceProcessing();
+    const { cityName, cityStatus, showDigitButtons, startVoiceProcess, convertTextToSpeech, Confirm, HandleDigitPress, StopParkingSession } = useVoiceProcessing();
     const { isIntroPlaying, startParkingFlow, startRecording, stopRecording } = useRecordingFlow(startVoiceProcess);
 
 return (
@@ -84,6 +84,10 @@ return (
                     <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
                 </TouchableOpacity>
 
+                {/* ✅ PLACE THE STOP PARKING BUTTON HERE */}
+                <TouchableOpacity style={styles.stopParkingButton} onPress={StopParkingSession}>
+                    <Text style={styles.squareButtonText}>עצור חניה</Text>
+                </TouchableOpacity>
                 {cityStatus !== '' && (
                     <Text style={styles.statusText}>{cityStatus}</Text>
                 )}

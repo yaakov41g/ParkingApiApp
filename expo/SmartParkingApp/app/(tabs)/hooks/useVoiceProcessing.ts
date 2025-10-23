@@ -91,9 +91,8 @@ export function useVoiceProcessing() {
             return;
         }
 
-        console.log("Zone selected:", selectedZone);
-
         try {
+            // Speak the selected zone
             const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -109,16 +108,52 @@ export function useVoiceProcessing() {
             await sound.playAsync();
 
             // Wait ~2.5 seconds before hiding buttons and message
-            setTimeout(() => {
-                sound.unloadAsync();
+            setTimeout(async () => {
+                await sound.unloadAsync();
                 setCityStatus('');
                 setShowDigitButtons(false);
+
+                // ✅ Call RegisterStartSession with phoneNumber
+                const startSessionResponse = await fetch(`http://192.168.1.2:5203/api/Parking/start-session?selectedZone=${selectedZone}`, {
+                    method: 'POST',
+                });
+
+                if (!startSessionResponse.ok) {
+                    const errorText = await startSessionResponse.text();
+                    console.error('Failed to start session:', errorText);
+                } else {
+                    console.log('Parking session started successfully');
+                }
             }, 2500);
         } catch (err) {
-            console.error('Error playing zone name:', err);
+            console.error('Error playing zone name or starting session:', err);
             setCityStatus('');
             setShowDigitButtons(false);
         }
     };
-    return { cityName, cityStatus, showDigitButtons, startVoiceProcess, convertTextToSpeech, Confirm, HandleDigitPress };
+    const StopParkingSession = async () => {
+        try {
+            const response = await fetch(`http://192.168.1.2:5203/api/parking/end-session`, {
+                method: 'POST',
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Failed to end session:', errorText);
+                // Optional: show an alert or toast to the user
+            } else {
+                console.log('✅ Parking session ended successfully');
+                // Optional: update UI or navigate to a confirmation screen
+            }
+        } catch (error) {
+            console.error('⚠️ Error ending session:', error);
+            // Optional: show error message to user
+        }
+    };
+
+
+    return {
+        cityName, cityStatus, showDigitButtons, startVoiceProcess,
+        convertTextToSpeech, Confirm, HandleDigitPress, StopParkingSession
+    };
 }

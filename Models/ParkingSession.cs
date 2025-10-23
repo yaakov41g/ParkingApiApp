@@ -20,9 +20,9 @@ namespace ParkingApiApp.Models
         public string Zone { get; set; }
 
         [BsonElement("startParkingTime")]
-        public DateTime StartParkingTime { get; set; }
+        public DateTime? StartParkingTime { get; set; }
 
         [BsonElement("endParkingTime")]
-        public DateTime EndParkingTime { get; set; }
+        public DateTime? EndParkingTime { get; set; }
     }
 }
