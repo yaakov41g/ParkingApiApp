@@ -51,6 +51,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '600',
     },
+    stopParkingButton: {
+        backgroundColor: '#800000', // bordo red
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginTop: 20,
+        alignItems: 'center',
+    },
+
     statusText: {
         fontSize: 16,
         color: 'green',
