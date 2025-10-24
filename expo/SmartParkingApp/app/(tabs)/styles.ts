@@ -1,4 +1,3 @@
-// styles.ts
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -17,32 +16,44 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
-    closeButton: {
-        backgroundColor: '#FF3B30',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        marginTop: 20,
+    startParkingButton: {
+        backgroundColor: '#007AFF',
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        justifyContent: 'center',
         alignItems: 'center',
+        marginVertical: 10,
     },
+    stopParkingButton: {
+        backgroundColor: '#800000',
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 30,
+        marginVertical: 10,
+    },
+
     confirmButton: {
-        backgroundColor: '#4CAF50', // Green
+        backgroundColor: '#4CAF50',
         paddingVertical: 14,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         borderRadius: 8,
-        width: '90%',
+        width: '60%', // narrower
         alignSelf: 'center',
         marginTop: 20,
     },
 
     repeatButton: {
-        backgroundColor: '#FF9800', // Orange
+        backgroundColor: '#FF9800',
         paddingVertical: 14,
-        paddingHorizontal: 30,
+        paddingHorizontal: 20,
         borderRadius: 8,
-        width: '90%',
+        width: '60%', // narrower
         alignSelf: 'center',
-        marginTop: 12,
+        marginTop: 18,
     },
 
     squareButtonText: {
@@ -51,14 +62,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '600',
     },
-    stopParkingButton: {
-        backgroundColor: '#800000', // bordo red
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        marginTop: 20,
-        alignItems: 'center',
-    },
 
     statusText: {
         fontSize: 16,
@@ -66,6 +69,7 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         textAlign: 'center',
     },
+
     container_main: {
         flex: 1,
         backgroundColor: '#f2f2f2',
@@ -73,16 +77,19 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 20,
     },
+
     signUpButton: {
         position: 'absolute',
         top: 40,
         right: 20,
         padding: 10,
     },
+
     signUpText: {
         color: '#007AFF',
         fontSize: 16,
     },
+
     input: {
         width: '90%',
         paddingVertical: 12,
@@ -94,51 +101,61 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         fontSize: 16,
     },
+
     title: {
         fontSize: 24,
         fontWeight: '300',
         marginBottom: 10,
     },
+
     appName: {
         fontSize: 32,
         fontWeight: 'bold',
         marginBottom: 40,
     },
+
     mainButton: {
         backgroundColor: '#007AFF',
         paddingVertical: 15,
         paddingHorizontal: 40,
         borderRadius: 30,
     },
+
     mainButtonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: '600',
     },
+
     animationContainer: {
         marginTop: 30,
         alignItems: 'center',
     },
+
     background: {
         flex: 1,
         width: '100%',
         height: '100%',
     },
+
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.3)', // optional dark overlay
+        backgroundColor: 'rgba(0,0,0,0.3)',
         justifyContent: 'center',
         alignItems: 'center',
     },
+
     digitGrid: {
         marginTop: 20,
         alignItems: 'center',
     },
+
     digitRow: {
         flexDirection: 'row',
         justifyContent: 'center',
         marginVertical: 5,
     },
+
     digitButton: {
         width: 60,
         height: 60,
@@ -150,10 +167,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
     },
+
     digitText: {
         fontSize: 24,
         fontWeight: 'bold',
     },
-
 });
+
 export default styles;

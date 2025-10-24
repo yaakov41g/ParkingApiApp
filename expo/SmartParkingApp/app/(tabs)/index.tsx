@@ -17,7 +17,7 @@ export default function MainScreen() {
             router.push('/(tabs)/ParkingFlow');
 
             //navigation.navigate('ParkingFlow'); // Replace with your operational screen route
-        }, 1500);
+        }, 500);
     };
 
     return (

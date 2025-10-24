@@ -1,122 +1,106 @@
-﻿import { useRecordingFlow } from './hooks/useRecordingFlow';
-import { useVoiceProcessing } from './hooks/useVoiceProcessing';
+﻿// VoiceCityRecognizer.tsx
+
+import React, { useState } from 'react';
 import { View, Text, Linking, TouchableOpacity, AppRegistry } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Video, ResizeMode } from 'expo-av';
+
+import { useRecordingFlow } from './hooks/useRecordingFlow';
+import { useVoiceProcessing } from './hooks/useVoiceProcessing';
 import appConfig from '../../app.json';
 import styles from './styles';
+
 const appName = appConfig.expo.name;
 
-
 export default function VoiceCityRecognizer() {
-    const { cityName, cityStatus, showDigitButtons, startVoiceProcess, convertTextToSpeech, Confirm, HandleDigitPress, StopParkingSession } = useVoiceProcessing();
-    const { isIntroPlaying, startParkingFlow, startRecording, stopRecording } = useRecordingFlow(startVoiceProcess);
+    const navigation = useNavigation<NavigationProp<any>>();
+    const [showEndMessage, setShowEndMessage] = useState(false);
 
-return (
-    <View style={styles.container}>
-        {showDigitButtons ? (
-            <View style={styles.digitGrid}>
-                {/* First row: 1–3 */}
-                <View style={styles.digitRow}>
-                    {[1, 2, 3].map((digit) => (
-                        <TouchableOpacity
-                            key={digit}
-                            style={styles.digitButton}
-                            onPress={() => HandleDigitPress(digit)}
-                        >
-                            <Text style={styles.digitText}>{digit}</Text>
-                        </TouchableOpacity>
-                    ))}
+    const {
+        cityStatus,
+        showDigitButtons,
+        startVoiceProcess,
+        Confirm,
+        HandleDigitPress,
+        StopParkingSession,
+    } = useVoiceProcessing({ navigation, setShowEndMessage });
+
+    const { isIntroPlaying, startParkingFlow, startRecording } = useRecordingFlow(startVoiceProcess);
+
+    return (
+        <View style={styles.container}>
+            {showEndMessage ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+                    <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', padding: 20 }}>
+                        החניה הסתיימה{'\n'}תודה שחניתם אוטו פארק
+                    </Text>
                 </View>
-
-                {/* Second row: 4–6 */}
-                <View style={styles.digitRow}>
-                    {[4, 5, 6].map((digit) => (
-                        <TouchableOpacity
-                            key={digit}
-                            style={styles.digitButton}
-                            onPress={() => HandleDigitPress(digit)}
-                        >
-                            <Text style={styles.digitText}>{digit}</Text>
-                        </TouchableOpacity>
+            ) : showDigitButtons ? (
+                <View style={styles.digitGrid}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].reduce((rows, digit, index) => {
+                        if (index % 3 === 0) rows.push([]);
+                        rows[rows.length - 1].push(digit);
+                        return rows;
+                    }, [] as number[][]).map((row, i) => (
+                        <View key={i} style={styles.digitRow}>
+                            {row.map((digit) => (
+                                <TouchableOpacity key={digit} style={styles.digitButton} onPress={() => HandleDigitPress(digit)}>
+                                    <Text style={styles.digitText}>{digit}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     ))}
-                </View>
-
-                {/* Third row: 7–9 */}
-                <View style={styles.digitRow}>
-                    {[7, 8, 9].map((digit) => (
-                        <TouchableOpacity
-                            key={digit}
-                            style={styles.digitButton}
-                            onPress={() => HandleDigitPress(digit)}
-                        >
-                            <Text style={styles.digitText}>{digit}</Text>
+                    <View style={styles.digitRow}>
+                        <View style={{ width: 60 }} />
+                        <TouchableOpacity style={styles.digitButton} onPress={() => HandleDigitPress(0)}>
+                            <Text style={styles.digitText}>0</Text>
                         </TouchableOpacity>
-                    ))}
+                        <View style={{ width: 60 }} />
+                    </View>
                 </View>
-
-                {/* Bottom row: 0 centered */}
-                <View style={styles.digitRow}>
-                    <View style={{ width: 60 }} />
-                    <TouchableOpacity
-                        style={styles.digitButton}
-                        onPress={() => HandleDigitPress(0)}
-                    >
-                        <Text style={styles.digitText}>0</Text>
+            ) : (
+                        <>
+                            <TouchableOpacity style={styles.startParkingButton} onPress={startParkingFlow}>
+                        <Text style={styles.squareButtonText}>התחל חניה</Text>
                     </TouchableOpacity>
-                    <View style={{ width: 60 }} />
-                </View>
-            </View>
-        ) : (
-            <>
-                <TouchableOpacity style={styles.bigButton} onPress={startParkingFlow}>
-                    <Text style={styles.squareButtonText}>התחל</Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity style={styles.bigButton} onPress={stopRecording}>
-                    <Text style={styles.squareButtonText}>עצור ושלח לשרת</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.confirmButton} onPress={Confirm}>
+                        <Text style={styles.squareButtonText}>1 - אישור</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.confirmButton} onPress={Confirm}>
-                    <Text style={styles.squareButtonText}>1 - אישור</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.repeatButton} onPress={startRecording}>
+                        <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.repeatButton} onPress={startRecording}>
-                    <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.stopParkingButton} onPress={StopParkingSession}>
+                        <Text style={styles.squareButtonText}>סיים חניה</Text>
+                    </TouchableOpacity>
 
-                {/* ✅ PLACE THE STOP PARKING BUTTON HERE */}
-                <TouchableOpacity style={styles.stopParkingButton} onPress={StopParkingSession}>
-                    <Text style={styles.squareButtonText}>עצור חניה</Text>
-                </TouchableOpacity>
-                {cityStatus !== '' && (
-                    <Text style={styles.statusText}>{cityStatus}</Text>
-                )}
+                    {cityStatus !== '' && <Text style={styles.statusText}>{cityStatus}</Text>}
 
-                {isIntroPlaying && (
-                    <>
-                        <Video
-                            source={require('../../assets/gifs/Audio_Wave.mp4')}
-                            rate={1.0}
-                            volume={1.0}
-                            isMuted={false}
-                            resizeMode={ResizeMode.CONTAIN}
-                            shouldPlay
-                            isLooping
-                            style={{ width: 120, height: 120, marginTop: 30 }}
-                        />
-                        <TouchableOpacity onPress={() => Linking.openURL('https://iconscout.com/lottie-animations/audio-wave')}>
-                            <Text style={{ textDecorationLine: 'underline', fontSize: 12 }}>
-                                Audio Wave by MD. MURADUZZAMAN
-                            </Text>
-                        </TouchableOpacity>
-                    </>
-                )}
-            </>
-        )}
-    </View>
-);
-
+                    {isIntroPlaying && (
+                        <>
+                            <Video
+                                source={require('../../assets/gifs/Audio_Wave.mp4')}
+                                rate={1.0}
+                                volume={1.0}
+                                isMuted={false}
+                                resizeMode={ResizeMode.CONTAIN}
+                                shouldPlay
+                                isLooping
+                                style={{ width: 120, height: 120, marginTop: 30 }}
+                            />
+                            <TouchableOpacity onPress={() => Linking.openURL('https://iconscout.com/lottie-animations/audio-wave')}>
+                                <Text style={{ textDecorationLine: 'underline', fontSize: 12 }}>
+                                    Audio Wave by MD. MURADUZZAMAN
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </>
+            )}
+        </View>
+    );
 }
 
 AppRegistry.registerComponent(appName, () => VoiceCityRecognizer);
-
