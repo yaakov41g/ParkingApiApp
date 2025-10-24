@@ -28,7 +28,6 @@ My role has been to understand the code, to design and refine the system — mak
    - The backend checks if the city exists in the Redis/MongoDB database.  
    - If needed, the name is translated using Google Cloud Translate.
 
-### *In next versions*
 6. **Zone Selection**  
    - If the city is valid, the app fetches available parking zones.  
    - The user selects a zone via the mobile UI.
