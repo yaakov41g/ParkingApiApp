@@ -12,6 +12,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
     const [cityStatus, setCityStatus] = useState('');
     const [showDigitButtons, setShowDigitButtons] = useState(false);
     const [zoneNames, setZoneNames] = useState<string[]>([]);
+    const [englishZoneNames, setEnglishZoneNames] = useState<string[]>([]);
 
     const startVoiceProcess = async (uri: string, endpoint: string) => {
         try {
@@ -77,11 +78,19 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
             const data = await response.json();
             setCityStatus(data.message);
 
-            const rawZones = data.zones.map((z: string) => {
+            const rawZones = data.hebrewZones.map((z: string) => {
                 const match = z.match(/ל־(.+)$/);
                 return match ? match[1] : z;
             });
+            console.log('@@@@@@@@@@ Raw Zones:', data.hebrewZones.join(', '));  
+            const englishRawZones = data.zones.map((z: string) => {
+                const match = z.match(/to(.+)$/);
+                return match ? match[1] : z;
+            });
+            console.log('@@@@@@@@@@ English Raw Zones:', englishRawZones.join(', '));   
+            setEnglishZoneNames(englishRawZones);
 
+            //console.log('@@@@@@@@@@ Data.message:', data.message);  
             setZoneNames(rawZones);
             await convertTextToSpeech(data.message);
             setShowDigitButtons(true);
@@ -93,7 +102,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
 
     const HandleDigitPress = async (digit: number) => {
         const selectedZone = zoneNames[digit - 1];
-
+        const englishSelectedZone = englishZoneNames[digit - 1];    
         if (!selectedZone) {
             await convertTextToSpeech('אזור לא חוקי. אנא נסה שוב.');
             return;
@@ -103,7 +112,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
             const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(`בחרתָּ את האזור   .${selectedZone} .רישום החניה בוצע`),
+                body: JSON.stringify(`בחרתָּ את האזור   .${selectedZone} .רישום החניה בוצע `),
             });
 
             if (!response.ok) throw new Error(await response.text());
@@ -120,7 +129,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
                 setShowDigitButtons(false);
 
                 const startSessionResponse = await fetch(
-                    `http://192.168.1.2:5203/api/Parking/start-session?selectedZone=${selectedZone}`,
+                    `http://192.168.1.2:5203/api/Parking/start-session?selectedZone=${englishSelectedZone}`,
                     { method: 'POST' }
                 );
 

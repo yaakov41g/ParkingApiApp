@@ -41,7 +41,8 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 20,
         borderRadius: 8,
-        width: '60%', // narrower
+        width: '50%', // narrower
+        height: 60,
         alignSelf: 'center',
         marginTop: 20,
     },
@@ -51,14 +52,15 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 20,
         borderRadius: 8,
-        width: '60%', // narrower
+        width: '50%', // narrower
+        height: 60,
         alignSelf: 'center',
         marginTop: 18,
     },
 
     squareButtonText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'center',
         fontWeight: '600',
     },

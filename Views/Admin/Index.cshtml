@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2>Admin Dashboard</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div style="color: green; margin-bottom: 1em;">
+        @TempData["Message"]
+    </div>
+}
+
+<form method="post" action="/admin/seed-rates">
+    <button type="submit">Seed Rates</button>
+</form>

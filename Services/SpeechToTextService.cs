@@ -2,14 +2,14 @@
 
 public class SpeechToTextService
 {
-    public async Task<string> TranscribeHebrewAsync(string audioFilePath)
+    public async Task<string> TranscribeAsync(string audioFilePath, string languageCode)
     {
         var speech = SpeechClient.Create();
         var response = await speech.RecognizeAsync(new RecognitionConfig
         {
             Encoding = RecognitionConfig.Types.AudioEncoding.Linear16,
             SampleRateHertz = 16000,
-            LanguageCode = "he-IL"
+            LanguageCode = languageCode//"he-IL"
         }, RecognitionAudio.FromFile(audioFilePath));
 
         return response.Results
