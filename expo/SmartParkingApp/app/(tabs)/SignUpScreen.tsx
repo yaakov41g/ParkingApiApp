@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import styles from './styles';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export default function SignUpScreen() {
     const [form, setForm] = useState({
@@ -13,6 +13,19 @@ export default function SignUpScreen() {
         accountNumber: '',
         creditNumber: ''
     });
+
+    // ✅ Reset form when screen is mounted or navigated to
+    useEffect(() => {
+        setForm({
+            name: '',
+            idNumber: '',
+            phoneNumber: '',
+            carNumber: '',
+            bankNumber: '',
+            accountNumber: '',
+            creditNumber: ''
+        });
+    }, []);
 
     const handleChange = (field: string, value: string) => {
         setForm(prev => ({ ...prev, [field]: value }));
@@ -37,7 +50,17 @@ export default function SignUpScreen() {
             const result = await response.json();
             console.log('Registration successful:', result);
 
-            // Navigate to the next screen
+            // ✅ Reset form before navigating
+            setForm({
+                name: '',
+                idNumber: '',
+                phoneNumber: '',
+                carNumber: '',
+                bankNumber: '',
+                accountNumber: '',
+                creditNumber: ''
+            });
+
             router.push('/(tabs)/ParkingFlow');
         } catch (error) {
             console.error('Network error:', error);

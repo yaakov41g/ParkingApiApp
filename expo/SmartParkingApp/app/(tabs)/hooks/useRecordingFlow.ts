@@ -4,13 +4,13 @@ import { useRef, useState } from 'react';
 import { Audio } from 'expo-av';
 import { SilenceDetector } from '../Utilities/SilenceDetector';
 import { recordingOptions } from '../Utilities/recordingOptions';
+import { useRouter } from 'expo-router';
 
 export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: string) => void) {
     const [isIntroPlaying, setIsIntroPlaying] = useState(false);
     const recordingRef = useRef<Audio.Recording | null>(null);
-    //const [recording, setRecording] = useState<Audio.Recording | null>(null);
     const endpointRef = useRef('');
-    //const [endpoint, setEndpoint] = useState('');
+    const router = useRouter();
 
     const startParkingFlow = async () => {
         try {
@@ -19,9 +19,23 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             if (!response.ok) throw new Error(await response.text());
 
             const result = await response.json();
-            const audioUrl = `http://192.168.1.2:5203${result.audio}`;
             const nextEndpoint = result.next;
+            const isRegistered = result.isRegistered;
+
+            // ✅ Validate audio path
+            if (!result.audio || typeof result.audio !== 'string' || !result.audio.trim()) {
+                console.error('❌ Invalid audio path received:', result.audio);
+                throw new Error('Invalid audio path received from server.');
+            }
+
+            const audioPath = result.audio.trim();
+            const audioUrl = audioPath.startsWith('http')
+                ? audioPath
+                : `http://192.168.1.2:5203${audioPath}`;
+
             console.log('####### Endpoint :', nextEndpoint);
+            console.log('🎧 Final audio URL:', audioUrl);
+            console.log('👤 Registered:', isRegistered);
 
             const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
 
@@ -29,10 +43,14 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
                 if (status.isLoaded && status.didJustFinish) {
                     await sound.unloadAsync();
                     setIsIntroPlaying(false);
+
+                    if (!isRegistered) {
+                        router.replace('/(tabs)/SignUpScreen');
+                        return;
+                    }
+
                     const fullEndpoint = `http://192.168.1.2:5203${nextEndpoint}`;
-                    //setEndpoint(fullEndpoint);
-                    endpointRef.current = fullEndpoint; 
-                   // console.log('!!!!!!!!!!!!!!!!!Sending voice data to:', endpoint);
+                    endpointRef.current = fullEndpoint;
                     startRecording();
                 }
             });
@@ -56,12 +74,10 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             await newRecording.prepareToRecordAsync(recordingOptions);
             await newRecording.startAsync();
             recordingRef.current = newRecording;
-            //setRecording(newRecording);
 
             // Auto-stop when silence is detected
             SilenceDetector(recordingRef.current, () => {
-
-                stopRecording(); // You can also add a toast or log here
+                stopRecording();
             });
 
         } catch (err) {
@@ -86,5 +102,11 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             console.error('Error at recording stop:', err);
         }
     };
-    return { isIntroPlaying, startParkingFlow, startRecording, stopRecording };
+
+    return {
+        isIntroPlaying,
+        startParkingFlow,
+        startRecording,
+        stopRecording
+    };
 }

@@ -26,5 +26,38 @@ namespace ParkingApiApp.Utilities
                 }
             }
         }
+        public static async Task SeedCityZoneRatesAsync(IMongoCollection<City> cityCollection,
+            IMongoCollection<CityZoneRate> rateCollection)
+        {
+            var cities = await cityCollection.Find(_ => true).ToListAsync();
+
+            var existingRates = await rateCollection.CountDocumentsAsync(_ => true);
+            if (existingRates > 0) return; // Already seeded
+
+            var rates = new List<CityZoneRate>();
+            var random = new Random();
+            var possibleRates = new[] { 5m, 7m, 10m, 12m };
+
+            foreach (var city in cities)
+            {
+                foreach (var zone in city.Zones)
+                {
+                    var selectedRate = possibleRates[random.Next(possibleRates.Length)];
+
+                    rates.Add(new CityZoneRate
+                    {
+                        CityName = city.Name,
+                        ZoneName = zone,
+                        HourlyRate = selectedRate
+                    });
+                }
+            }
+
+            if (rates.Count > 0)
+            {
+                await rateCollection.InsertManyAsync(rates);
+            }
+        }
+
     }
 }

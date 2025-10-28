@@ -65,11 +65,11 @@ export default function VoiceCityRecognizer() {
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.confirmButton} onPress={Confirm}>
-                        <Text style={styles.squareButtonText}>1 - אישור</Text>
+                        <Text style={styles.squareButtonText}>אישור</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.repeatButton} onPress={startRecording}>
-                        <Text style={styles.squareButtonText}>2 - אמור שוב</Text>
+                        <Text style={styles.squareButtonText}>אמור שוב</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.stopParkingButton} onPress={StopParkingSession}>

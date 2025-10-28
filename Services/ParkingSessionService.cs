@@ -51,7 +51,7 @@
             await _sessions.InsertOneAsync(session);       // Full session with context
             await _auxCollection.InsertOneAsync(auxSession); // Minimal session for history
 
-            _logger.LogInformation($"Parking session for {session.CarNumber} registered in {session.City}/{session.Zone} from {session.StartParkingTime} to {session.EndParkingTime}");
+            //_logger.LogInformation($"Parking session for {session.CarNumber} registered in {session.City}/{session.Zone} from {session.StartParkingTime} to {session.EndParkingTime}");
 
             return true;
         }

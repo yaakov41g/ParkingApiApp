@@ -1,0 +1,35 @@
+﻿@model List<ParkingApiApp.Models.ParkingSessionView>
+
+<h2>Parking Sessions</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Owner</th>
+            <th>ID Number</th>
+            <th>Car Number</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>City</th>
+            <th>Zone</th>
+            <th>Rate</th>
+            <th>Sum</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var session in Model)
+        {
+            <tr>
+                <td>@session.OwnerId</td>
+                <td>@session.OwnerName</td>
+                <td>@session.CarNumber</td>
+                <td>@session.StartParkingTime.ToString("g")</td>
+                <td>@session.EndParkingTime.ToString("g")</td>
+                <td>@session.City</td>
+                <td>@session.Zone</td>
+                <td>@session.Rate.ToString("0.00")</td>
+                <td>@session.Sum.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>

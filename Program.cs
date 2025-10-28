@@ -1,61 +1,61 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
+﻿using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
 using ParkingApiApp.Utilities;
 using StackExchange.Redis;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Secrets/parkingapp-473913-84210e5927a9.json");
-
-// Add services to the container.
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();//Envoke
+// Add services
+builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 var mongoConnection = builder.Configuration.GetConnectionString("MongoDb");
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnection));
-//builder.Services.AddSingleton<ParkingCollectionAccess>();
-//builder.Services.AddSingleton<VoiceGeneratorService>();
+
 builder.Services.AddSingleton<SpeechToTextService>();
 builder.Services.AddSingleton<TexToSpeechService>();
 builder.Services.AddSingleton<CityService>();
+builder.Services.AddSingleton<CitySeederService>();
 builder.Services.AddSingleton<TranslationService>();
 builder.Services.AddScoped<AudioConversionService>();
 builder.Services.AddSingleton<CarOwnerRegistrationService>();
 builder.Services.AddScoped<ParkingSessionService>();
 
-// register redis connection
+// Redis
 var redis = ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false");
 builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
-/// Add CORS policy
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:8081") // Your Expo Web origin
+        policy.WithOrigins("http://localhost:8081")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
+
+// Mongo collections
 builder.Services.AddSingleton<IMongoCollection<City>>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
-    var db = client.GetDatabase("ParkingDB"); // Make sure this matches your actual DB name
-    return db.GetCollection<City>("cities");  // Make sure this matches your actual collection name
+    var db = client.GetDatabase("ParkingDB");
+    return db.GetCollection<City>("cities");
 });
 builder.Services.AddSingleton<IMongoCollection<ParkingSessionAux>>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
-    var db = client.GetDatabase("ParkingDB"); // Use your actual DB name
-    return db.GetCollection<ParkingSessionAux>("aux"); // Use your actual collection name
+    var db = client.GetDatabase("ParkingDB");
+    return db.GetCollection<ParkingSessionAux>("parking_sessions_aux");
 });
 
 var app = builder.Build();
-// Use CORS
-app.UseCors("AllowLocalhost");
+
+// Seed cities
 using (var scope = app.Services.CreateScope())
 {
     var mongoClient = scope.ServiceProvider.GetRequiredService<IMongoClient>();
@@ -63,16 +63,22 @@ using (var scope = app.Services.CreateScope())
     await Seeder.SeedCitiesAsync(db.GetCollection<City>("cities"));
 }
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseStaticFiles(); // This enables access to /audio/welcome_message.wav
 
+app.UseCors("AllowLocalhost");
+app.UseStaticFiles();
 app.UseAuthorization();
 
-app.MapControllers();
+// ✅ Top-level route registration
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Admin}/{action=Index}/{id?}");
+
+app.MapFallbackToController("Index", "Admin");
 
 app.Run();

@@ -6,6 +6,7 @@ using ParkingApiApp.Utilities;
 using StackExchange.Redis;
 using System.Media;
 using System.Text;
+using ZstdSharp;
 
 namespace ParkingApiApp.Controllers
 {
@@ -42,11 +43,30 @@ namespace ParkingApiApp.Controllers
             _redisDb = redis.GetDatabase();        }
 
         [HttpGet("welcome")]
-        public IActionResult Welcome()
+        public async Task<IActionResult> Welcome()
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return BadRequest("Phone number is required.");
 
+            var owner = await _carOwnerService.GetByPhoneNumberAsync(phoneNumber);
+            if (owner == null)
+            {
+                // 🔊 Generate TTS message for unregistered user
+                var ttsMessage = "אינך רשום עדיין. אנא מָלֵא את פְּרַטֶיךָ כדי להפעיל את החניה.";
+                var ttsPath = await _tts.GenerateHebrewVoiceAsync(ttsMessage); // Returns full file path
+
+                // Convert full path to relative URI for frontend
+                var relativeUri = ttsPath.Replace("C:\\ASP\\ParkingApiApp\\wwwroot", "").Replace("\\", "/");
+
+                return Ok(new
+                {
+                    audio = relativeUri, // e.g. "/TTS/tts_abc123.mp3"
+                    next = "/signup",
+                    isRegistered = false
+                });
+            }
+
+            // ✅ Registered user: send welcome intro
             if (!_sessionData.ContainsKey(phoneNumber))
             {
                 _sessionData[phoneNumber] = new ParkingSessionRequest
@@ -54,18 +74,15 @@ namespace ParkingApiApp.Controllers
                     PhoneNumber = phoneNumber
                 };
             }
-            var audioPath = "/audio/welcome.m4a";
-            var nextEndpoint = "/api/parking/listen-to-user";
 
-            // Clear Redis cache for cities
-            //var db = redis.GetDatabase();
-            //await db.KeyDeleteAsync("cities_full");
+            var welcomeAudioPath = "/audio/welcome.m4a";
+            var nextEndpoint = "/api/parking/listen-to-user";
 
             return Ok(new
             {
-                audio = audioPath,
+                audio = welcomeAudioPath,
                 next = nextEndpoint,
-                clearedKey = "cities_full"
+                isRegistered = true
             });
         }
 
@@ -95,7 +112,9 @@ namespace ParkingApiApp.Controllers
             try
             {
                 var decompressed = await _audioConverter.ConvertToUncompressedWavAsync(tempPath, uploadDir);
-                transcript = await _speechToTextService.TranscribeHebrewAsync(decompressed);
+                transcript = await _speechToTextService.TranscribeAsync(decompressed, "he-IL");
+                _sessionData[phoneNumber].City = await _speechToTextService.TranscribeAsync(decompressed, "en-US");
+
             }
             catch (Exception ex)
             {
@@ -104,7 +123,6 @@ namespace ParkingApiApp.Controllers
             }
 
             // ✅ Update city only — no need to reinitialize
-            _sessionData[phoneNumber].City = transcript;
 
             return Ok(new { city = transcript });
         }
@@ -134,6 +152,10 @@ namespace ParkingApiApp.Controllers
         [HttpPost("validate-city")]
         public async Task<IActionResult> ValidateCity([FromBody] string cityName)
         {
+            if (!_sessionData.TryGetValue(phoneNumber, out var session))
+                return NotFound("Session not found for this phone number.");
+            //_logger.LogInformation($"Validating city: {cityName}");
+            session.City = cityName;
             if (string.IsNullOrWhiteSpace(cityName))
             {
                 return NotFound(new
@@ -150,6 +172,7 @@ namespace ParkingApiApp.Controllers
                     message = "העיר לא נמצאה. אנא נסה שוב או נסה עיר אחרת."
                 });
             }
+            session.City = city.Name;
 
             System.IO.File.AppendAllText("log.txt", $"City name : {city.Name}\n", Encoding.UTF8);
 
@@ -160,41 +183,28 @@ namespace ParkingApiApp.Controllers
                 var hebrewZone = await _translationService.TranslateEnglishToHebrewAsync(zone);
                 translatedZones.Add(hebrewZone);
             }
+            //var zonesList = string.Join(", ", city.Zones);
+            //_logger.LogInformation($"Found city: {city.Name}, Zones: {zonesList}");
 
             var zonePrompts = translatedZones.Select((zone, index) =>
                 $"הקש {index + 1} ל־{zone}").ToList();
-
+            _logger.LogInformation("######## City zones: " + string.Join(", ", city.Zones));  
             var optionsMessage = string.Join(", ", zonePrompts);
 
             return Ok(new
             {
                 city = city.Name,
                 message = optionsMessage,
-                zones = zonePrompts,
-                translatedZones = translatedZones // optional for frontend
+                zones = city.Zones,
+                hebrewZones = translatedZones // optional for frontend
             });
         }
-        //[HttpPost("select-zone")]
-        //public IActionResult SelectZone([FromBody] string zone)
-        //{
-        //    if (string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(zone))
-        //        return BadRequest("Phone number and zone are required.");
-
-        //    if (_sessionData.TryGetValue(phoneNumber, out var session))
-        //    {
-        //        session.Zone = zone;
-        //        System.IO.File.AppendAllText("log.txt", $"Zone selected for {phoneNumber}: {zone}\n", Encoding.UTF8);
-        //        return Ok(new { zone });
-        //    }
-
-        //    return NotFound("Session not found for this phone number.");
-        //}
         [HttpPost("start-session")]
         public async Task<IActionResult> RegisterStartSession([FromQuery] string selectedZone)
         {
             if (!_sessionData.TryGetValue(phoneNumber, out var session))
                 return NotFound("Session not found for this phone number.");
-
+            _logger.LogInformation($"@@@@@@@@@@@@ Selected zone: {selectedZone}");
             // ✅ Fetch car owner by phone number
             var owner = await _carOwnerService.GetByPhoneNumberAsync(phoneNumber);
             if (owner == null)
@@ -202,15 +212,15 @@ namespace ParkingApiApp.Controllers
             var carKey = $"car:{owner.CarNumber}";
             var startTime = DateTime.Now;
             await _redisDb.StringSetAsync(carKey, startTime.ToString("o")); // ISO 8601 format
-
+            //selectedZone = await _speechToTextService.TranscribeAsync("selectedZone", "en-US");
             // ✅ Set car number and start time
             session.CarNumber = owner.CarNumber;
+            session.City = session.City;
             session.Zone = selectedZone;
             session.StartTime = startTime;
             session.EndTime = null; // Ongoing session
 
             var success = await _parkingSessionService.RegisterSessionAsync(session);
-
             if (success)
                 return Ok("Parking session started.");
 
@@ -219,7 +229,7 @@ namespace ParkingApiApp.Controllers
         [HttpPost("end-session")]
         public async Task<IActionResult> RegisterEndSession()
         {
-            string phoneNumber = "0521234567"; // Hardcoded for now
+           // string phoneNumber = "0521234567"; // Hardcoded for now
 
             // ✅ Get car number from phone number
             var owner = await _carOwnerService.GetByPhoneNumberAsync(phoneNumber);
