@@ -29,5 +29,6 @@ namespace ParkingApiApp.Models
 
         [BsonElement("creditNumber")]
         public string CreditNumber { get; set; }
+        public string Email { get; set; }   
     }
 }

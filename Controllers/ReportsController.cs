@@ -28,50 +28,67 @@ namespace ParkingApiApp.Controllers
         [HttpGet("sessions")]
         public async Task<IActionResult> Sessions()
         {
-
             var sessions = await _sessionCollection.Find(FilterDefinition<ParkingSession>.Empty).ToListAsync();
             var owners = await _ownerCollection.Find(FilterDefinition<CarOwner>.Empty).ToListAsync();
             var rates = await _rateCollection.Find(FilterDefinition<CityZoneRate>.Empty).ToListAsync();
             var auxSessions = await _auxCollection.Find(FilterDefinition<ParkingSessionAux>.Empty).ToListAsync();
-            for (int i = 0; i < rates.Count; i++)
-            {
-                var aux = rates[i];
 
-                // Optional: log only the first item
-                if (i == 0)
-                    break;
-            }
-            // _logger.LogInformation("**************** " + auxSessions);
-            var viewData = sessions.Select(session =>
+            var sessionViews = sessions.Select(session =>
             {
                 var owner = owners.FirstOrDefault(o => o.CarNumber == session.CarNumber);
                 var rate = rates.FirstOrDefault(r => r.CityName == session.City && r.ZoneName == session.Zone);
-
-                if (rate != null)
-                {
-                    _logger.LogInformation($"Rate found: City={rate.CityName}, Zone={rate.ZoneName}, HourlyRate={rate.HourlyRate}");
-                }
-                else
-                {
-                    _logger.LogWarning($"No rate found for City={session.City}, Zone={session.Zone}");
-                }
                 var aux = auxSessions.FirstOrDefault(a =>
                     a.CarNumber == session.CarNumber &&
                     a.StartParkingTime == session.StartParkingTime);
-                return new ParkingSessionView
+
+                return new ParkingSessionViewModel
                 {
-                    OwnerId = owner?.Id ?? "Unknown",
+                    OwnerId = owner?.IdNumber ?? "Unknown",
                     OwnerName = owner?.Name ?? "Unknown",
                     CarNumber = session.CarNumber,
                     StartParkingTime = session.StartParkingTime ?? DateTime.MinValue,
-                    EndParkingTime = aux?.EndParkingTime ?? DateTime.MinValue, // ✅ Use real end time
+                    EndParkingTime = aux?.EndParkingTime ?? DateTime.MinValue,
                     City = session.City ?? "Unknown",
                     Zone = session.Zone ?? "Unknown",
                     Rate = rate?.HourlyRate ?? 0
                 };
             }).ToList();
 
-            return View(viewData);
+            var accountSummaries = owners.Select(owner =>
+            {
+                var ownerSessions = sessionViews.Where(s => s.CarNumber == owner.CarNumber).ToList();
+                var totalHours = ownerSessions.Sum(s => (s.EndParkingTime - s.StartParkingTime).TotalHours);
+                var totalPay = ownerSessions.Sum(s => s.Sum);
+                return new SessionAccountViewModel
+                {
+                    Id = owner.IdNumber,
+                    OwnerName = owner.Name,
+                    CarNumber = owner.CarNumber,
+                    SessionCount = ownerSessions.Count,
+                    TotalHours = totalHours,
+                    TotalPay = totalPay,
+                    Email = owner.Email
+                };
+            }).ToList();
+
+            var accountDetails = sessionViews.Select((s, index) => new AccountDetailViewModel
+            {
+                SerialNumber = index + 1,
+                City = s.City,
+                Zone = s.Zone,
+                StartTime = s.StartParkingTime,
+                EndTime = s.EndParkingTime,
+                Rate = s.Rate
+            }).ToList();
+
+            var model = new SessionWrapperViewModel
+            {
+                ParkingSessions = sessionViews,
+                SessionAccounts = accountSummaries,
+                AccountDetails = accountDetails
+            };
+
+            return View(model);
         }
     }
 }

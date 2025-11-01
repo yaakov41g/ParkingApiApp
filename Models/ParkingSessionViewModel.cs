@@ -1,7 +1,8 @@
 ﻿namespace ParkingApiApp.Models
 {
-    public class ParkingSessionView
+    public class ParkingSessionViewModel
     {
+        public string SerialNumber { get; set; }
         public string OwnerId { get; set; }
         public string OwnerName { get; set; }
         public string CarNumber { get; set; }

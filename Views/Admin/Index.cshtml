@@ -1,16 +1,34 @@
-﻿@{
-    ViewData["Title"] = "Admin Dashboard";
-}
+﻿<div class="container mt-4">
+    <h2>Admin Dashboard(internal)</h2>
 
-<h2>Admin Dashboard</h2>
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success mt-3">
+            @TempData["Message"]
+        </div>
+    }
 
-@if (TempData["Message"] != null)
-{
-    <div style="color: green; margin-bottom: 1em;">
-        @TempData["Message"]
+    <div class="d-flex justify-content-center gap-4 mt-5">
+        <form method="post" action="/admin/seed-rates">
+            <button type="submit" class="btn btn-success btn-lg px-4">💰 Seed Rates</button>
+        </form>
+
+        <button class="btn btn-primary btn-lg px-4" onclick="seedCarOwners()">📩 Seed Car Owners with Email</button>
     </div>
-}
+</div>
 
-<form method="post" action="/admin/seed-rates">
-    <button type="submit">Seed Rates</button>
-</form>
+<script>
+    function seedCarOwners() {
+        fetch('/admin/seed-car-owners', {
+            method: 'POST'
+        })
+        .then(response => response.text())
+        .then(message => {
+            //alert("🚀 Seeder triggered:\n" + message);
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("❌ An error occurred while calling the seeder.");
+        });
+    }
+</script>
