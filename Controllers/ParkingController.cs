@@ -25,7 +25,7 @@ namespace ParkingApiApp.Controllers
         private static readonly Dictionary<string, ParkingSessionRequest> _sessionData = new();
         private readonly ParkingSessionService _parkingSessionService;
         private readonly CarOwnerRegistrationService _carOwnerService;
-        private const string phoneNumber = "0521234567"; //For testing purposes, replace with getting it Twilio query param
+        private const string phoneNumber = "05677722222"; //For testing purposes, replace with getting it Twilio query param
         public ParkingController(SpeechToTextService speechToTextService, ILogger<ParkingController> logger,
             AudioConversionService audioConverter, IMongoCollection<City> cityCollection, ParkingSessionService parkingSessionService,
             TexToSpeechService tts, CityService cityService, TranslationService translationService,
@@ -183,9 +183,6 @@ namespace ParkingApiApp.Controllers
                 var hebrewZone = await _translationService.TranslateEnglishToHebrewAsync(zone);
                 translatedZones.Add(hebrewZone);
             }
-            //var zonesList = string.Join(", ", city.Zones);
-            //_logger.LogInformation($"Found city: {city.Name}, Zones: {zonesList}");
-
             var zonePrompts = translatedZones.Select((zone, index) =>
                 $"הקש {index + 1} ל־{zone}").ToList();
             _logger.LogInformation("######## City zones: " + string.Join(", ", city.Zones));  
@@ -229,8 +226,6 @@ namespace ParkingApiApp.Controllers
         [HttpPost("end-session")]
         public async Task<IActionResult> RegisterEndSession()
         {
-           // string phoneNumber = "0521234567"; // Hardcoded for now
-
             // ✅ Get car number from phone number
             var owner = await _carOwnerService.GetByPhoneNumberAsync(phoneNumber);
             if (owner == null)

@@ -1,35 +1,259 @@
-﻿@model List<ParkingApiApp.Models.ParkingSessionView>
+﻿@model ParkingApiApp.Models.SessionWrapperViewModel
 
-<h2>Parking Sessions</h2>
+@{
+    ViewData["Title"] = "Parking Reports";
+}
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Owner</th>
-            <th>ID Number</th>
-            <th>Car Number</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>City</th>
-            <th>Zone</th>
-            <th>Rate</th>
-            <th>Sum</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var session in Model)
-        {
-            <tr>
-                <td>@session.OwnerId</td>
-                <td>@session.OwnerName</td>
-                <td>@session.CarNumber</td>
-                <td>@session.StartParkingTime.ToString("g")</td>
-                <td>@session.EndParkingTime.ToString("g")</td>
-                <td>@session.City</td>
-                <td>@session.Zone</td>
-                <td>@session.Rate.ToString("0.00")</td>
-                <td>@session.Sum.ToString("0.00")</td>
-            </tr>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: antiquewhite;
         }
-    </tbody>
-</table>
+
+        .hebrew-text {
+            direction: rtl;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .sum-text {
+            font-weight: bold;
+            color: darkgreen;
+        }
+
+        .sortable:hover {
+            cursor: pointer;
+            background-color: darkblue;
+        }
+
+        .sorted-asc::after {
+            content: " ↑";
+            color: lightgoldenrodyellow;
+        }
+
+        .sorted-desc::after {
+            content: " ↓";
+            color: red;
+        }
+
+        .highlight {
+            background-color: #e6f7ff !important;
+        }
+
+        .clicked-row td {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+
+        #driverTable thead th:hover,
+        #detailsTable thead th:hover {
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">🚗 Parking Sessions Dashboard</h2>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs justify-content-center" id="sessionTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab" aria-controls="sessions" aria-selected="true">Sessions</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab" aria-controls="accounts" aria-selected="false">Accounts</button>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="sessionTabsContent">
+            <!-- Tab 1: Parking Sessions -->
+            <div class="tab-pane fade show active" id="sessions" role="tabpanel" aria-labelledby="sessions-tab">
+                <table class="table table-bordered table-hover text-center align-middle mt-3" id="sessionsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="sortable">#</th>
+                            <th class="sortable">ID</th>
+                            <th class="sortable hebrew-text">Owner</th>
+                            <th class="sortable">Car</th>
+                            <th class="sortable">Start</th>
+                            <th class="sortable">End</th>
+                            <th class="sortable">City</th>
+                            <th class="sortable hebrew-text">Zone</th>
+                            <th class="sortable">Rate</th>
+                            <th class="sortable">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var i = 1;
+                        }
+                        @foreach (var s in Model.ParkingSessions)
+                        {
+                            <tr>
+                                <td>@i</td>
+                                <td>@s.OwnerId</td>
+                                <td class="hebrew-text">@s.OwnerName</td>
+                                <td>@s.CarNumber</td>
+                                <td>@s.StartParkingTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@s.EndParkingTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@s.City</td>
+                                <td class="hebrew-text">@s.Zone</td>
+                                <td>@s.Rate.ToString("N2")</td>
+                                <td class="text-success sum-text">@s.Sum.ToString("N2")</td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2: Accounts Summary -->
+            <div class="tab-pane fade" id="accounts" role="tabpanel" aria-labelledby="accounts-tab">
+                <h5 class="text-center mt-4">🧾 Driver Summary</h5>
+                <table class="table table-bordered table-hover text-center align-middle mt-3" id="driverTable">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th class="sortable">#</th>
+                            <th class="sortable">ID</th>
+                            <th class="sortable hebrew-text">Name</th>
+                            <th class="sortable">Car</th>
+                            <th class="sortable">Sessions</th>
+                            <th class="sortable">Hours</th>
+                            <th class="sortable">Total Pay</th>
+                            <th class="sortable">Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            i = 1;
+                        }
+                        @foreach (var d in Model.SessionAccounts)
+                        {
+                            <tr class="driver-row" data-car="@d.CarNumber">
+                                <td>@i</td>
+                                <td>@d.Id</td>
+                                <td class="hebrew-text">@d.OwnerName</td>
+                                <td>@d.CarNumber</td>
+                                <td>@d.SessionCount</td>
+                                <td>@d.TotalHours.ToString("N2")</td>
+                                <td class="text-success sum-text">@d.TotalPay.ToString("N2")</td>
+                                <td>@d.Email</td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+
+                <h5 class="text-center mt-5">📄 Session Breakdown</h5>
+                <table class="table table-bordered table-hover text-center align-middle mt-3" id="detailsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="sortable">#</th>
+                            <th class="sortable">City</th>
+                            <th class="sortable hebrew-text">Zone</th>
+                            <th class="sortable">Start</th>
+                            <th class="sortable">End</th>
+                            <th class="sortable">Rate</th>
+                            <th class="sortable">Hours</th>
+                            <th class="sortable">Sum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            i = 1;
+                        }
+                        @foreach (var d in Model.AccountDetails)
+                        {
+                            var car = Model.ParkingSessions.FirstOrDefault(s => s.StartParkingTime == d.StartTime && s.EndParkingTime == d.EndTime)?.CarNumber;
+                            <tr data-car="@car">
+                                <td>@i</td>
+                                <td>@d.City</td>
+                                <td class="hebrew-text">@d.Zone</td>
+                                <td>@d.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@d.EndTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@d.Rate.ToString("N2")</td>
+                                <td>@d.Hours.ToString("N2")</td>
+                                <td class="text-success sum-text">@d.Sum.ToString("N2")</td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Sorting
+            document.querySelectorAll(".sortable").forEach(header => {
+                header.addEventListener("click", () => {
+                    const table = header.closest("table");
+                    const index = Array.from(header.parentNode.children).indexOf(header);
+                    const ascending = !header.classList.contains("sorted-asc");
+
+                    table.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
+                    header.classList.add(ascending ? "sorted-asc" : "sorted-desc");
+
+                    const rows = Array.from(table.querySelectorAll("tbody tr"));
+                    rows.sort((a, b) => {
+                        const aText = a.children[index].innerText.trim();
+                        const bText = b.children[index].innerText.trim();
+                        return ascending
+                            ? aText.localeCompare(bText, undefined, { numeric: true })
+                            : bText.localeCompare(aText, undefined, { numeric: true });
+                    });
+
+                    const tbody = table.querySelector("tbody");
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            });
+
+            // Filter Session Breakdown by Driver Click
+            let lastSelectedCar = null;
+            document.querySelectorAll(".driver-row").forEach(row => {
+                row.addEventListener("click", () => {
+                    const car = row.getAttribute("data-car");
+                    const rows = document.querySelectorAll("#detailsTable tbody tr");
+
+                    if (lastSelectedCar === car) {
+                        // Reset filter
+                        rows.forEach(tr => tr.style.display = "");
+                        lastSelectedCar = null;
+                        document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
+                    } else {
+                        // Filter by car
+                        rows.forEach(tr => {
+                            const trCar = tr.getAttribute("data-car");
+                            tr.style.display = (trCar === car) ? "" : "none";
+                        });
+                        lastSelectedCar = car;
+                        document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
+                        row.classList.add("highlight");
+                    }
+                });
+            });
+
+            //Highlight clicked row in sessionsTable
+            const sessionRows = document.querySelectorAll("#driverTable tbody tr");
+            sessionRows.forEach(row => {
+                row.addEventListener("click", function () {
+                    sessionRows.forEach(r => r.classList.remove("clicked-row"));
+                    this.classList.add("clicked-row");
+                });
+            });
+        });
+    </script>
+</body>
+</html>

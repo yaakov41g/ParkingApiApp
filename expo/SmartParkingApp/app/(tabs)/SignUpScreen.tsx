@@ -11,7 +11,8 @@ export default function SignUpScreen() {
         carNumber: '',
         bankNumber: '',
         accountNumber: '',
-        creditNumber: ''
+        creditNumber: '',
+        Email: ''
     });
 
     // ✅ Reset form when screen is mounted or navigated to
@@ -23,7 +24,8 @@ export default function SignUpScreen() {
             carNumber: '',
             bankNumber: '',
             accountNumber: '',
-            creditNumber: ''
+            creditNumber: '',
+            Email: ''   
         });
     }, []);
 
@@ -58,7 +60,8 @@ export default function SignUpScreen() {
                 carNumber: '',
                 bankNumber: '',
                 accountNumber: '',
-                creditNumber: ''
+                creditNumber: '',
+                Email: ''
             });
 
             router.push('/(tabs)/ParkingFlow');
