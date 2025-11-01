@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using ParkingApiApp.Models;
+using ParkingApiApp.ViewModels;
 using ParkingApiApp.Services;
 using System.Runtime.Intrinsics.X86;
+using Newtonsoft.Json;
 
 namespace ParkingApiApp.Controllers
 {
@@ -88,7 +90,9 @@ namespace ParkingApiApp.Controllers
                 AccountDetails = accountDetails
             };
 
+            TempData["SessionData"] = JsonConvert.SerializeObject(model);
             return View(model);
         }
+
     }
 }

@@ -1,0 +1,68 @@
+﻿@model Dictionary<string, int>
+@using Newtonsoft.Json
+
+<h5>Sessions by City</h5>
+<div class="text-end mb-2">
+    <button class="btn btn-outline-secondary btn-sm" id="toggleChartType">Switch to Pie Chart</button>
+</div>
+
+<canvas id="citySessionsChart" width="400" height="250" style="max-width: 100%; margin: auto;"></canvas>
+
+<script>
+    console.log("Script loaded");
+</script>
+
+<script>
+    const labels = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Keys))');
+    const data = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Values))');
+
+    let currentType = 'bar';
+    const ctx = document.getElementById('citySessionsChart').getContext('2d');
+
+    const config = {
+        type: currentType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Sessions',
+                data: data,
+                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#17a2b8', '#6f42c1'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: currentType === 'pie' },
+                title: { display: true, text: 'Sessions by City' }
+            }
+        }
+    };
+
+    let chart = new Chart(ctx, config);
+
+    // ✅ Scroll after chart is drawn
+    setTimeout(() => {
+      const canvas = document.getElementById("citySessionsChart");
+      if (canvas) {
+        canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 300); // Slight delay ensures pie chart is visible
+
+    document.getElementById('toggleChartType').addEventListener('click', () => {
+        currentType = currentType === 'bar' ? 'pie' : 'bar';
+        chart.destroy();
+        config.type = currentType;
+        config.options.plugins.legend.display = currentType === 'pie';
+        chart = new Chart(ctx, config);
+        document.getElementById('toggleChartType').textContent =
+            currentType === 'bar' ? 'Switch to Pie Chart' : 'Switch to Bar Chart';
+    // ✅ Scroll after pie/bar toggle
+     setTimeout(() => {
+       const canvas = document.getElementById("citySessionsChart");
+       if (canvas) {
+         canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+       }
+     }, 300);
+    });
+</script>

@@ -1,0 +1,34 @@
+﻿@using Newtonsoft.Json
+<canvas id="zoneHoursChart"></canvas>
+<script>
+    const labels = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Keys))');
+    const data = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Values))');
+
+    const ctx = document.getElementById('zoneHoursChart').getContext('2d');
+    const config = {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Parking Hours',
+          data: data,
+          backgroundColor: '#6f42c1'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Parking Hours by Zone'
+          }
+        }
+      }
+    };
+
+    const chart = new Chart(ctx, config);
+
+    setTimeout(() => {
+      document.getElementById("zoneHoursChart").scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
+</script>
