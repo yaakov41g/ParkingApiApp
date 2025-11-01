@@ -1,4 +1,5 @@
-﻿@model ParkingApiApp.Models.SessionWrapperViewModel
+﻿@using ParkingApiApp.ViewModels
+@model SessionWrapperViewModel
 
 @{
     ViewData["Title"] = "Parking Reports";
@@ -26,20 +27,40 @@
             color: darkgreen;
         }
 
-        .sortable:hover {
-            cursor: pointer;
-            background-color: darkblue;
+        .sortable {
+            position: relative;
+            transition: background-color 0.2s ease;
         }
 
-        .sorted-asc::after {
-            content: " ↑";
-            color: lightgoldenrodyellow;
+            .sortable:hover {
+                cursor: pointer;
+                background-color: #003366; /* darker blue for hover */
+                color: white;
+            }
+
+        /* Sorted ascending */
+        .sorted-asc {
+            background-color: #0056b3 !important; /* blue highlight */
+            color: #fff !important;
         }
 
-        .sorted-desc::after {
-            content: " ↓";
-            color: red;
+            .sorted-asc::after {
+                content: " ↑";
+                color: #ffeb3b; /* bright yellow arrow */
+                font-weight: bold;
+            }
+
+        /* Sorted descending */
+        .sorted-desc {
+            background-color: #0056b3 !important; /* dark red highlight */
+            color: #fff !important;
         }
+
+            .sorted-desc::after {
+                content: " ↓";
+                color: #ffeb3b; /* light red arrow */
+                font-weight: bold;
+            }
 
         .highlight {
             background-color: #e6f7ff !important;
@@ -53,7 +74,17 @@
         #driverTable thead th:hover,
         #detailsTable thead th:hover {
             color: white;
+            background-color: #444;
         }
+
+        #diagrams select {
+            min-width: 180px;
+        }
+
+        #diagrams td {
+            vertical-align: middle;
+        }
+
 
     </style>
 </head>
@@ -69,6 +100,8 @@
             <li class="nav-item">
                 <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab" aria-controls="accounts" aria-selected="false">Accounts</button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link" id="diagrams-tab" data-bs-toggle="tab" data-bs-target="#diagrams" type="button" role="tab" aria-controls="diagrams" aria-selected="false">Diagrams</button>
         </ul>
 
         <!-- Tabs Content -->
@@ -187,72 +220,171 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Tab 3: Diagrams -->
+            <div class="tab-pane fade" id="diagrams" role="tabpanel" aria-labelledby="diagrams-tab">
+                <div class="container mt-4">
+                    <table class="table table-bordered text-center">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Sessions by City</th>
+                                <th>Monthly Sessions per Driver</th>
+                                <th>Parking Hours by City</th>
+                                <th>Parking Hours by Zone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div id="chart-city-sessions">
+                                        <button class="btn btn-outline-primary btn-sm" id="viewCitySessions">View Chart</button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select id="driverDropdown" class="form-select">
+                                        <option disabled selected>Select a driver</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="cityDropdown" class="form-select">
+                                        <option disabled selected>Select a city</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="zoneCityDropdown" class="form-select mb-2">
+                                        <option disabled selected>Select a city</option>
+                                    </select>
+                                    <select id="zoneDropdown" class="form-select">
+                                        <option disabled selected>Select a zone</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <div id="chartContainer" style="margin-top: 10px;"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Custom JS -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Sorting
-            document.querySelectorAll(".sortable").forEach(header => {
-                header.addEventListener("click", () => {
-                    const table = header.closest("table");
-                    const index = Array.from(header.parentNode.children).indexOf(header);
-                    const ascending = !header.classList.contains("sorted-asc");
+            document.addEventListener("DOMContentLoaded", function () {
+                // Sorting
+                document.querySelectorAll(".sortable").forEach(header => {
+                    header.addEventListener("click", () => {
+                        const table = header.closest("table");
+                        const index = Array.from(header.parentNode.children).indexOf(header);
+                        const ascending = !header.classList.contains("sorted-asc");
 
-                    table.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
-                    header.classList.add(ascending ? "sorted-asc" : "sorted-desc");
+                        table.querySelectorAll("th").forEach(th => th.classList.remove("sorted-asc", "sorted-desc"));
+                        header.classList.add(ascending ? "sorted-asc" : "sorted-desc");
 
-                    const rows = Array.from(table.querySelectorAll("tbody tr"));
-                    rows.sort((a, b) => {
-                        const aText = a.children[index].innerText.trim();
-                        const bText = b.children[index].innerText.trim();
-                        return ascending
-                            ? aText.localeCompare(bText, undefined, { numeric: true })
-                            : bText.localeCompare(aText, undefined, { numeric: true });
-                    });
-
-                    const tbody = table.querySelector("tbody");
-                    rows.forEach(row => tbody.appendChild(row));
-                });
-            });
-
-            // Filter Session Breakdown by Driver Click
-            let lastSelectedCar = null;
-            document.querySelectorAll(".driver-row").forEach(row => {
-                row.addEventListener("click", () => {
-                    const car = row.getAttribute("data-car");
-                    const rows = document.querySelectorAll("#detailsTable tbody tr");
-
-                    if (lastSelectedCar === car) {
-                        // Reset filter
-                        rows.forEach(tr => tr.style.display = "");
-                        lastSelectedCar = null;
-                        document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
-                    } else {
-                        // Filter by car
-                        rows.forEach(tr => {
-                            const trCar = tr.getAttribute("data-car");
-                            tr.style.display = (trCar === car) ? "" : "none";
+                        const rows = Array.from(table.querySelectorAll("tbody tr"));
+                        rows.sort((a, b) => {
+                            const aText = a.children[index].innerText.trim();
+                            const bText = b.children[index].innerText.trim();
+                            return ascending
+                                ? aText.localeCompare(bText, undefined, { numeric: true })
+                                : bText.localeCompare(aText, undefined, { numeric: true });
                         });
-                        lastSelectedCar = car;
-                        document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
-                        row.classList.add("highlight");
-                    }
-                });
-            });
 
-            //Highlight clicked row in sessionsTable
-            const sessionRows = document.querySelectorAll("#driverTable tbody tr");
-            sessionRows.forEach(row => {
-                row.addEventListener("click", function () {
-                    sessionRows.forEach(r => r.classList.remove("clicked-row"));
-                    this.classList.add("clicked-row");
+                        const tbody = table.querySelector("tbody");
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
                 });
+
+                // Filter Session Breakdown by Driver Click
+                let lastSelectedCar = null;
+                document.querySelectorAll(".driver-row").forEach(row => {
+                    row.addEventListener("click", () => {
+                        const car = row.getAttribute("data-car");
+                        const rows = document.querySelectorAll("#detailsTable tbody tr");
+
+                        if (lastSelectedCar === car) {
+                            // Reset filter
+                            rows.forEach(tr => tr.style.display = "");
+                            lastSelectedCar = null;
+                            document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
+                        } else {
+                            // Filter by car
+                            rows.forEach(tr => {
+                                const trCar = tr.getAttribute("data-car");
+                                tr.style.display = (trCar === car) ? "" : "none";
+                            });
+                            lastSelectedCar = car;
+                            document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
+                            row.classList.add("highlight");
+                        }
+                    });
+                });
+
+                //Highlight clicked row in sessionsTable
+                const sessionRows = document.querySelectorAll("#driverTable tbody tr");
+                sessionRows.forEach(row => {
+                    row.addEventListener("click", function () {
+                        sessionRows.forEach(r => r.classList.remove("clicked-row"));
+                        this.classList.add("clicked-row");
+                    });
+                });
+
+        document.getElementById("viewCitySessions").addEventListener("click", function () {
+          fetch("/Diagrams/CitySessions")
+            .then(res => res.text())
+            .then(html => {
+              const container = document.getElementById("chartContainer");
+              container.innerHTML = html;
+              const canvas = container.querySelector("canvas");
+              const scripts = container.querySelectorAll("script");
+              scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                if (oldScript.src) {
+                  newScript.src = oldScript.src;
+                } else {
+                  newScript.textContent = oldScript.textContent;
+                }
+                document.body.appendChild(newScript);
+                oldScript.remove();
+              });
+
+              // ✅ Scroll to chart
+              canvas.scrollIntoView({ behavior: "smooth", block: "start" });
             });
+        });
+        //cities zones chart
+                document.getElementById("viewZoneHours").addEventListener("click", function () {
+          const city = document.getElementById("citySelect").value;
+          const zone = document.getElementById("zoneSelect").value;
+
+          fetch(`/Diagrams/zone-hours?city=${city}&zone=${zone}`)
+            .then(res => res.text())
+            .then(html => {
+              const container = document.getElementById("chartContainer");
+              container.innerHTML = html;
+
+              const scripts = container.querySelectorAll("script");
+              scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                if (oldScript.src) {
+                  newScript.src = oldScript.src;
+                } else {
+                  newScript.textContent = oldScript.textContent;
+                }
+                document.body.appendChild(newScript);
+                oldScript.remove();
+              });
+            });
+        });
+
+
         });
     </script>
 </body>

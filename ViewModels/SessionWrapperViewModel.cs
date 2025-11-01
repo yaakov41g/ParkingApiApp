@@ -1,4 +1,4 @@
-﻿namespace ParkingApiApp.Models
+﻿namespace ParkingApiApp.ViewModels
 {
     public class SessionWrapperViewModel
     {
