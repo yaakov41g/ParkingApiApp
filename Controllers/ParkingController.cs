@@ -185,7 +185,6 @@ namespace ParkingApiApp.Controllers
             }
             var zonePrompts = translatedZones.Select((zone, index) =>
                 $"הקש {index + 1} ל־{zone}").ToList();
-            _logger.LogInformation("######## City zones: " + string.Join(", ", city.Zones));  
             var optionsMessage = string.Join(", ", zonePrompts);
 
             return Ok(new
@@ -201,7 +200,6 @@ namespace ParkingApiApp.Controllers
         {
             if (!_sessionData.TryGetValue(phoneNumber, out var session))
                 return NotFound("Session not found for this phone number.");
-            _logger.LogInformation($"@@@@@@@@@@@@ Selected zone: {selectedZone}");
             // ✅ Fetch car owner by phone number
             var owner = await _carOwnerService.GetByPhoneNumberAsync(phoneNumber);
             if (owner == null)

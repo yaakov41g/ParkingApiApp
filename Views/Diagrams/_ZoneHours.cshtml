@@ -1,34 +1,96 @@
-﻿@using Newtonsoft.Json
-<canvas id="zoneHoursChart"></canvas>
+﻿@model Dictionary<string, double>
+@using Newtonsoft.Json
+
+<div class="text-end mb-2">
+    <button class="btn btn-outline-secondary btn-sm" id="toggleChartType">Switch to Pie Chart</button>
+</div>
+
+<div style="max-width: 700px; margin: auto;">
+    <canvas id="zoneHoursChart" width="700" height="500"></canvas>
+</div>
+
 <script>
-    const labels = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Keys))');
-    const data = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Values))');
+    (function () {
+        const labels = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Keys))');
+        const data = JSON.parse('@Html.Raw(JsonConvert.SerializeObject(Model.Values))');
 
-    const ctx = document.getElementById('zoneHoursChart').getContext('2d');
-    const config = {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Total Parking Hours',
-          data: data,
-          backgroundColor: '#6f42c1'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Parking Hours by Zone'
-          }
-        }
-      }
-    };
+        let currentType = 'bar';
+        const ctx = document.getElementById('zoneHoursChart').getContext('2d');
 
-    const chart = new Chart(ctx, config);
+        const config = {
+            type: currentType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Parking Hours',
+                    data: data,
+                    backgroundColor: [
+                        '#dc3545', '#fd7e14', '#20c997', '#6610f2', '#6c757d',
+                        '#17a2b8', '#ffc107', '#28a745', '#007bff', '#6f42c1'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: currentType === 'pie',
+                        labels: {
+                            font: {
+                                size: 10 // 👈 Smaller legend font
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Parking Hours by Zone',
+                        font: {
+                            size: 18
+                        }
+                    },
+                    tooltip: {
+                        bodyFont: {
+                            size: 10 // 👈 Smaller tooltip font
+                        }
+                    }
+                },
+                layout: {
+                    padding: 20
+                }
+            }
+        };
 
-    setTimeout(() => {
-      document.getElementById("zoneHoursChart").scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 300);
+        let chart = new Chart(ctx, config);
+
+        setTimeout(() => {
+            const canvas = document.getElementById("zoneHoursChart");
+            if (canvas) {
+                canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }, 300);
+
+        document.getElementById('toggleChartType').addEventListener('click', () => {
+            chart.destroy();
+            currentType = currentType === 'bar' ? 'pie' : 'bar';
+
+            config.type = currentType;
+            config.options.plugins.legend.display = currentType === 'pie';
+            config.options.plugins.title.text = currentType === 'pie'
+                ? 'Parking Hours by Zone (Pie View)'
+                : 'Parking Hours by Zone';
+
+            chart = new Chart(ctx, config);
+            document.getElementById('toggleChartType').textContent =
+                currentType === 'bar' ? 'Switch to Pie Chart' : 'Switch to Bar Chart';
+
+            setTimeout(() => {
+                const canvas = document.getElementById("zoneHoursChart");
+                if (canvas) {
+                    canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }, 300);
+        });
+    })();
 </script>

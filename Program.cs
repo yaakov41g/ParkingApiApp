@@ -1,7 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Google.Api;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using ParkingApiApp.Configuration;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
+using ParkingApiApp.Services.Email;
+using ParkingApiApp.Services.Hosted;
 using ParkingApiApp.Utilities;
 using StackExchange.Redis;
 
@@ -11,7 +15,7 @@ Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Secrets/pa
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddSession();
 var mongoConnection = builder.Configuration.GetConnectionString("MongoDb");
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnection));
 
@@ -23,6 +27,10 @@ builder.Services.AddSingleton<TranslationService>();
 builder.Services.AddScoped<AudioConversionService>();
 builder.Services.AddSingleton<CarOwnerRegistrationService>();
 builder.Services.AddScoped<ParkingSessionService>();
+builder.Services.AddHostedService<InvoiceScheduler>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ReportService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 // Redis
 var redis = ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false");
@@ -69,7 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseSession();
 app.UseCors("AllowLocalhost");
 app.UseStaticFiles();
 app.UseAuthorization();
