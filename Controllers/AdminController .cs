@@ -39,8 +39,6 @@ namespace ParkingApiApp.Controllers
         [HttpPost("seed-rates")]
         public async Task<IActionResult> SeedRates()
         {
-            _logger.LogInformation("@@@@@@@@@@@ Seeding car owners with emails...");
-
             await Seeder.SeedCityZoneRatesAsync(_cityCollection, _rateCollection);
             TempData["Message"] = "Rates seeded successfully.";
             return RedirectToAction("Index");
@@ -48,7 +46,6 @@ namespace ParkingApiApp.Controllers
         [HttpPost("seed-car-owners")]
         public async Task<IActionResult> SeedCarOwners()
         {
-            _logger.LogInformation("@@@@@@@@@@@ Seeding car owners with emails...");
             await Seeder.SeedCarOwnersAsync(_carOwnerCollection, _logger);
             return Ok("Car owners with emails seeded successfully.");
         }

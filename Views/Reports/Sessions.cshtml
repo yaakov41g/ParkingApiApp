@@ -226,38 +226,21 @@
                     <table class="table table-bordered text-center">
                         <thead class="table-success">
                             <tr>
-                                <th>Sessions by City</th>
-                                <th>Monthly Sessions per Driver</th>
-                                <th>Parking Hours by City</th>
-                                <th>Parking Hours by Zone</th>
+                                <th>
+                                    <button id="viewCitySessions" class="chart-tab btn btn-outline-success w-100">Sessions by City</button>
+                                </th>
+                                <th>
+                                    <button id="viewMonthlySessions" class="chart-tab btn btn-outline-success w-100">Monthly Sessions per Driver</button>
+                                </th>
+                                <th>
+                                    <button id="viewCityHours" class="chart-tab btn btn-outline-success w-100">Parking Hours by City</button>
+                                </th>
+                                <th>
+                                    <button id="viewZoneHours" class="chart-tab btn btn-outline-success w-100">Parking Hours by Zone</button>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div id="chart-city-sessions">
-                                        <button class="btn btn-outline-primary btn-sm" id="viewCitySessions">View Chart</button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <select id="driverDropdown" class="form-select">
-                                        <option disabled selected>Select a driver</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <select id="cityDropdown" class="form-select">
-                                        <option disabled selected>Select a city</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <select id="zoneCityDropdown" class="form-select mb-2">
-                                        <option disabled selected>Select a city</option>
-                                    </select>
-                                    <select id="zoneDropdown" class="form-select">
-                                        <option disabled selected>Select a zone</option>
-                                    </select>
-                                </td>
-                            </tr>
                             <tr>
                                 <td colspan="4">
                                     <div id="chartContainer" style="margin-top: 10px;"></div>
@@ -324,6 +307,8 @@
                             document.querySelectorAll(".driver-row").forEach(r => r.classList.remove("highlight"));
                             row.classList.add("highlight");
                         }
+        updateSerialNumbers();
+
                     });
                 });
 
@@ -335,6 +320,22 @@
                         this.classList.add("clicked-row");
                     });
                 });
+                        function updateSerialNumbers() {
+            const visibleRows = document.querySelectorAll("#detailsTable tbody tr");
+            let count = 1;
+
+            visibleRows.forEach(row => {
+                if (row.style.display !== "none") {
+                    const firstCell = row.querySelector("td");
+                    if (firstCell) {
+                        firstCell.textContent = count++;
+                    }
+                }
+            });
+        }
+
+        // Call after filtering or resetting
+
 
         document.getElementById("viewCitySessions").addEventListener("click", function () {
           fetch("/Diagrams/CitySessions")
@@ -359,17 +360,15 @@
               canvas.scrollIntoView({ behavior: "smooth", block: "start" });
             });
         });
-        //cities zones chart
-                document.getElementById("viewZoneHours").addEventListener("click", function () {
-          const city = document.getElementById("citySelect").value;
-          const zone = document.getElementById("zoneSelect").value;
-
-          fetch(`/Diagrams/zone-hours?city=${city}&zone=${zone}`)
+        //zones sessions chart
+        document.getElementById("viewZoneHours").addEventListener("click", function () {
+          fetch(`/Diagrams/zone-hours`)
             .then(res => res.text())
             .then(html => {
               const container = document.getElementById("chartContainer");
               container.innerHTML = html;
 
+              const canvas = container.querySelector("canvas");
               const scripts = container.querySelectorAll("script");
               scripts.forEach(oldScript => {
                 const newScript = document.createElement("script");
@@ -381,9 +380,33 @@
                 document.body.appendChild(newScript);
                 oldScript.remove();
               });
+
+              if (canvas) {
+                canvas.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
             });
         });
+                // zones hours chart
+                //         document.getElementById("viewZoneHours").addEventListener("click", function () {
+        //   fetch("/Diagrams/ZoneHours")
+        //     .then(res => res.text())
+        //     .then(html => {
+        //       const container = document.getElementById("chartContainer");
+        //       container.innerHTML = html;
 
+        //       const scripts = container.querySelectorAll("script");
+        //       scripts.forEach(oldScript => {
+        //         const newScript = document.createElement("script");
+        //         if (oldScript.src) {
+        //           newScript.src = oldScript.src;
+        //         } else {
+        //           newScript.textContent = oldScript.textContent;
+        //         }
+        //         document.body.appendChild(newScript);
+        //         oldScript.remove();
+        //       });
+        //     });
+        // });
 
         });
     </script>
