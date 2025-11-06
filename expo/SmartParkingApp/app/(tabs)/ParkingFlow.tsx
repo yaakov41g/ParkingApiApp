@@ -1,7 +1,7 @@
-﻿// VoiceCityRecognizer.tsx
+﻿// ParkingFlow.tsx (VoiceCityRecognizer.tsx)
 
 import React, { useState } from 'react';
-import { View, Text, Linking, TouchableOpacity, AppRegistry } from 'react-native';
+import { View, Text, Linking, TouchableOpacity, AppRegistry, ActivityIndicator } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Video, ResizeMode } from 'expo-av';
 
@@ -13,22 +13,29 @@ import styles from './styles';
 const appName = appConfig.expo.name;
 
 export default function VoiceCityRecognizer() {
-    const navigation = useNavigation<NavigationProp<any>>();
-    const [showEndMessage, setShowEndMessage] = useState(false);
 
+    const navigation = useNavigation<NavigationProp<any>>();
+    const [isDeciphering, setIsDeciphering] = useState(false);
+
+    const [showEndMessage, setShowEndMessage] = useState(false);
     const {
         cityStatus,
         showDigitButtons,
         startVoiceProcess,
         Confirm,
         HandleDigitPress,
-        StopParkingSession,
-    } = useVoiceProcessing({ navigation, setShowEndMessage });
+        StopParkingSession
+    } = useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphering }); // ✅ now receives it correctly
+    const {
+        isIntroPlaying,
+        startParkingFlow,
+        startRecording
+    } = useRecordingFlow(startVoiceProcess); // ✅ must come after declaration
 
-    const { isIntroPlaying, startParkingFlow, startRecording } = useRecordingFlow(startVoiceProcess);
+
 
     return (
-        <View style={styles.container}>
+        <View style={styles.mainContainer}>
             {showEndMessage ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
                     <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', padding: 20 }}>
@@ -59,8 +66,8 @@ export default function VoiceCityRecognizer() {
                     </View>
                 </View>
             ) : (
-                        <>
-                            <TouchableOpacity style={styles.startParkingButton} onPress={startParkingFlow}>
+                <>
+                    <TouchableOpacity style={styles.startParkingButton} onPress={startParkingFlow}>
                         <Text style={styles.squareButtonText}>התחל חניה</Text>
                     </TouchableOpacity>
 
@@ -78,27 +85,39 @@ export default function VoiceCityRecognizer() {
 
                     {cityStatus !== '' && <Text style={styles.statusText}>{cityStatus}</Text>}
 
-                    {isIntroPlaying && (
-                        <>
-                            <Video
-                                source={require('../../assets/gifs/Audio_Wave.mp4')}
-                                rate={1.0}
-                                volume={1.0}
-                                isMuted={false}
-                                resizeMode={ResizeMode.CONTAIN}
-                                shouldPlay
-                                isLooping
-                                style={{ width: 120, height: 120, marginTop: 30 }}
-                            />
-                            <TouchableOpacity onPress={() => Linking.openURL('https://iconscout.com/lottie-animations/audio-wave')}>
-                                <Text style={{ textDecorationLine: 'underline', fontSize: 12 }}>
-                                    Audio Wave by MD. MURADUZZAMAN
-                                </Text>
-                            </TouchableOpacity>
-                        </>
-                    )}
+                    <View style={{ position: 'absolute', bottom: 20, width: '100%', alignItems: 'center' }}>
+                        {isIntroPlaying && (
+                            <>
+                                <Video
+                                    source={require('../../assets/gifs/Audio_Wave.mp4')}
+                                    rate={1.0}
+                                    volume={1.0}
+                                    isMuted={false}
+                                    resizeMode={ResizeMode.CONTAIN}
+                                    shouldPlay
+                                    isLooping
+                                    style={{ width: 120, height: 120 }}
+                                />
+                                <TouchableOpacity onPress={() => Linking.openURL('https://iconscout.com/lottie-animations/audio-wave')}>
+                                    <Text style={{ textDecorationLine: 'underline', fontSize: 12 }}>
+                                        Audio Wave by MD. MURADUZZAMAN
+                                    </Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </View>
                 </>
             )}
+            <View style={{ position: 'absolute', bottom: 20, width: '100%', alignItems: 'center' }}>
+
+            {isDeciphering && (
+                <View style={{ alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={{ marginTop: 10 }}>מזהה את העיר שלך...</Text>
+                </View>
+
+            )}
+            </View>
         </View>
     );
 }

@@ -25,7 +25,7 @@ namespace ParkingApiApp.Controllers
         private static readonly Dictionary<string, ParkingSessionRequest> _sessionData = new();
         private readonly ParkingSessionService _parkingSessionService;
         private readonly CarOwnerRegistrationService _carOwnerService;
-        private const string phoneNumber = "05677722222"; //For testing purposes, replace with getting it Twilio query param
+        private const string phoneNumber = "05311133322"; //For testing purposes, replace with getting it Twilio query param
         public ParkingController(SpeechToTextService speechToTextService, ILogger<ParkingController> logger,
             AudioConversionService audioConverter, IMongoCollection<City> cityCollection, ParkingSessionService parkingSessionService,
             TexToSpeechService tts, CityService cityService, TranslationService translationService,
@@ -75,7 +75,7 @@ namespace ParkingApiApp.Controllers
                 };
             }
 
-            var welcomeAudioPath = "/audio/welcome.m4a";
+            var welcomeAudioPath = "/audio/welcome1.m4a";
             var nextEndpoint = "/api/parking/listen-to-user";
 
             return Ok(new
@@ -183,10 +183,11 @@ namespace ParkingApiApp.Controllers
                 var hebrewZone = await _translationService.TranslateEnglishToHebrewAsync(zone);
                 translatedZones.Add(hebrewZone);
             }
-            var zonePrompts = translatedZones.Select((zone, index) =>
-                $"הקש {index + 1} ל־{zone}").ToList();
+            var zonePrompts = translatedZones
+                .Select((zone, index) => $" הַקֵשׁ {index + 1} ל־{zone}")
+                .ToList();
+            zonePrompts.Add("לביטול, הַקֵשׁ '0.'");
             var optionsMessage = string.Join(", ", zonePrompts);
-
             return Ok(new
             {
                 city = city.Name,
@@ -221,6 +222,19 @@ namespace ParkingApiApp.Controllers
 
             return BadRequest("Failed to start parking session.");
         }
+
+        [HttpPost("cancel-session")]
+        public async Task<IActionResult> CancelSession()
+        {
+            // Clear in-memory session
+            _sessionData.Remove(phoneNumber);
+
+            // Clear Redis session
+            await _redisDb.KeyDeleteAsync($"session:{phoneNumber}");
+
+            return Ok(new { message = "Session cancelled." });
+        }
+
         [HttpPost("end-session")]
         public async Task<IActionResult> RegisterEndSession()
         {

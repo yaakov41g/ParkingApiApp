@@ -6,12 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TargetFramework>net8.0-windows</TargetFramework>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="Audio\welcome.m4a" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Speech.V1" Version="3.8.0" />
@@ -19,6 +17,7 @@
     <PackageReference Include="Google.Cloud.Translate.V3" Version="3.9.0" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.46.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.5.0" />
+    <PackageReference Include="RazorLight" Version="2.3.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.Windows.Extensions" Version="9.0.9" />
@@ -27,8 +26,14 @@
 
   <ItemGroup>
     <Folder Include="Audio\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\Images\" />
     <Folder Include="wwwroot\TTS\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\EmailTemplates\Invoice.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
