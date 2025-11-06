@@ -1,4 +1,4 @@
-﻿// demoImport.ts
+﻿// useRecordingFlow.ts
 
 import { useRef, useState } from 'react';
 import { Audio } from 'expo-av';
@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 
 export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: string) => void) {
     const [isIntroPlaying, setIsIntroPlaying] = useState(false);
+    const [isDeciphering, setIsDeciphering] = useState(false);
     const recordingRef = useRef<Audio.Recording | null>(null);
     const endpointRef = useRef('');
     const router = useRouter();
@@ -22,7 +23,6 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             const nextEndpoint = result.next;
             const isRegistered = result.isRegistered;
 
-            // ✅ Validate audio path
             if (!result.audio || typeof result.audio !== 'string' || !result.audio.trim()) {
                 console.error('❌ Invalid audio path received:', result.audio);
                 throw new Error('Invalid audio path received from server.');
@@ -75,11 +75,9 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             await newRecording.startAsync();
             recordingRef.current = newRecording;
 
-            // Auto-stop when silence is detected
             SilenceDetector(recordingRef.current, () => {
                 stopRecording();
             });
-
         } catch (err) {
             console.error('Error at recording start:', err);
         }
@@ -98,6 +96,7 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
             }
 
             recordingRef.current = null;
+            setIsDeciphering(true); // ✅ Trigger spinner
         } catch (err) {
             console.error('Error at recording stop:', err);
         }
@@ -105,8 +104,10 @@ export function useRecordingFlow(onRecordingComplete: (uri: string, endpoint: st
 
     return {
         isIntroPlaying,
+        isDeciphering,
+        setIsDeciphering,
         startParkingFlow,
         startRecording,
-        stopRecording
+        stopRecording,
     };
 }

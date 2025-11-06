@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import  SignUpScreen  from './SignUpScreen';
-
+import HelpScreen from './help';
 export default function MainScreen() {
     //const navigation = useNavigation();
     const [isStarting, setIsStarting] = useState(false);
@@ -26,8 +25,8 @@ export default function MainScreen() {
             style={styles.background}
             resizeMode="cover"
         >
-
-            <View style={styles.container}>
+            <View style={styles.mainContainer}>
+                <HelpScreen/>
                 {/* Sign Up Button */}
                 <TouchableOpacity style={styles.signUpButton} onPress={() => router.push('/SignUpScreen')}>
                     <Text style={styles.signUpText}>Sign Up</Text>

@@ -1,0 +1,28 @@
+﻿@model ParkingApiApp.ViewModels.SessionAccountViewModel
+
+
+<html>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 20px; direction:rtl">
+        <img src="https://raw.githubusercontent.com/yaakov41g/KEset-landing/main/autopark_logo.png" alt="AutoPark Logo" style="width: 150px; margin-bottom: 20px;" />
+        <h2 style="color: #333333;">חשבונית חניה חודשית</h2>
+        <p style="font-size: 16px;">שלום <strong>@Model.OwnerName</strong>,</p>
+        <p style="font-size: 16px;">הנה החשבונית שלך לחודש האחרון:</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">🚗 מספר רכב:</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">@Model.CarNumber</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">⏱️ שעות חניה:</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">@Model.TotalHours.ToString("F2")</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;">💳 תשלום כולל:</td>
+                <td style="padding: 8px;">₪@Model.TotalPay.ToString("F2")</td>
+            </tr>
+        </table>
+        <p style="margin-top: 20px; font-size: 16px;">תודה על השימוש בשירותי החניה שלנו!</p>
+    </div>
+</body>
+</html>

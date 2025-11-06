@@ -1,13 +1,18 @@
-﻿import { useState } from 'react';
+﻿// useVoiceProcessing.ts
+
+import { useState } from 'react';
 import { Audio } from 'expo-av';
 import { NavigationProp } from '@react-navigation/native';
+import { router } from 'expo-router';
+import { Dispatch, SetStateAction } from 'react';
 
 type VoiceProcessingParams = {
     navigation: NavigationProp<any>;
-    setShowEndMessage: (value: boolean) => void;
+    setShowEndMessage: Dispatch<SetStateAction<boolean>>;
+    setIsDeciphering: Dispatch<SetStateAction<boolean>>; // ✅ Added this
 };
 
-export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProcessingParams) {
+export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphering }: VoiceProcessingParams) {
     const [cityName, setCityName] = useState('');
     const [cityStatus, setCityStatus] = useState('');
     const [showDigitButtons, setShowDigitButtons] = useState(false);
@@ -16,9 +21,11 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
 
     const startVoiceProcess = async (uri: string, endpoint: string) => {
         try {
+            setIsDeciphering(true); // ✅ Show spinner
+
             const formData = new FormData();
             formData.append('file', { uri, name: 'voice_input.wav', type: 'audio/wav' } as any);
-            console.log('!!!!!!!!!!!!!!!!!Sending voice data to:', endpoint);
+            console.log('🎙️ Sending voice data to:', endpoint);
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -30,11 +37,15 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
 
             const result = await response.json();
             const transcript = result.city || 'לא זוהתה עיר';
+
             const message = `זִיהִינו את העיר ${transcript}. אם זה נכון, הַקֵשׁ אישור. אם לא, הַקֵשׁ אֱמוֹר שׁוּב.`;
             await convertTextToSpeech(message);
+
             setCityName(transcript);
+            setIsDeciphering(false); // ✅ Hide spinner
         } catch (err) {
             console.error('Error in startVoiceProcess:', err);
+            setIsDeciphering(false); // ✅ Hide spinner on error
         }
     };
 
@@ -46,7 +57,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
                 body: JSON.stringify(message),
             });
 
-            console.log('TTS status:', response.status);
+            console.log('🔊 TTS status:', response.status);
             if (!response.ok) throw new Error(await response.text());
 
             const result = await response.json();
@@ -76,24 +87,25 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
             }
 
             const data = await response.json();
-            setCityStatus(data.message);
 
             const rawZones = data.hebrewZones.map((z: string) => {
                 const match = z.match(/ל־(.+)$/);
                 return match ? match[1] : z;
             });
-            console.log('@@@@@@@@@@ Raw Zones:', data.hebrewZones.join(', '));  
+
             const englishRawZones = data.zones.map((z: string) => {
                 const match = z.match(/to(.+)$/);
                 return match ? match[1] : z;
             });
-            console.log('@@@@@@@@@@ English Raw Zones:', englishRawZones.join(', '));   
-            setEnglishZoneNames(englishRawZones);
 
-            //console.log('@@@@@@@@@@ Data.message:', data.message);  
+            setEnglishZoneNames(englishRawZones);
             setZoneNames(rawZones);
             await convertTextToSpeech(data.message);
-            setShowDigitButtons(true);
+            setCityStatus(data.message);
+
+            setTimeout(() => {
+                setShowDigitButtons(true);
+            }, 4000);
         } catch (err) {
             await convertTextToSpeech('אירעה שגיאה. אנא נסה שוב בעוד רגע.');
             console.error('Error in Confirm:', err);
@@ -101,8 +113,30 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
     };
 
     const HandleDigitPress = async (digit: number) => {
+        if (digit === 0) {
+            try {
+                const cancelResponse = await fetch('http://192.168.1.2:5203/api/parking/cancel-session', {
+                    method: 'POST',
+                });
+
+                if (!cancelResponse.ok) {
+                    const errorText = await cancelResponse.text();
+                    console.error('Failed to cancel session:', errorText);
+                }
+
+                await convertTextToSpeech('החניה בוטלה. חזור להתחלה.');
+                setCityStatus('');
+                setShowDigitButtons(false);
+                router.push('/');
+            } catch (err) {
+                console.error('Error cancelling session:', err);
+            }
+            return;
+        }
+
         const selectedZone = zoneNames[digit - 1];
-        const englishSelectedZone = englishZoneNames[digit - 1];    
+        const englishSelectedZone = englishZoneNames[digit - 1];
+
         if (!selectedZone) {
             await convertTextToSpeech('אזור לא חוקי. אנא נסה שוב.');
             return;
@@ -160,7 +194,6 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
                 console.log('✅ Parking session ended successfully');
                 setShowEndMessage(true);
 
-                // ✅ Send TTS request
                 const ttsResponse = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -177,13 +210,14 @@ export function useVoiceProcessing({ navigation, setShowEndMessage }: VoiceProce
 
                 setTimeout(() => {
                     setShowEndMessage(false);
-                    navigation.navigate('index'); // or your actual route name
+                    navigation.navigate('index');
                 }, 3000);
             }
         } catch (error) {
             console.error('⚠️ Error ending session:', error);
         }
     };
+
     return {
         cityName,
         cityStatus,

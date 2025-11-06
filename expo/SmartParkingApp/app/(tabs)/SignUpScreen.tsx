@@ -1,8 +1,12 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import {
+    Text,
+    TextInput,
+    TouchableOpacity,
+} from 'react-native';
+import { router } from 'expo-router';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import styles from './styles';
-import { router, useLocalSearchParams } from 'expo-router';
-
 export default function SignUpScreen() {
     const [form, setForm] = useState({
         name: '',
@@ -15,7 +19,6 @@ export default function SignUpScreen() {
         Email: ''
     });
 
-    // ✅ Reset form when screen is mounted or navigated to
     useEffect(() => {
         setForm({
             name: '',
@@ -25,7 +28,7 @@ export default function SignUpScreen() {
             bankNumber: '',
             accountNumber: '',
             creditNumber: '',
-            Email: ''   
+            Email: ''
         });
     }, []);
 
@@ -37,9 +40,7 @@ export default function SignUpScreen() {
         try {
             const response = await fetch('http://192.168.1.2:5203/api/carowner/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form),
             });
 
@@ -52,7 +53,6 @@ export default function SignUpScreen() {
             const result = await response.json();
             console.log('Registration successful:', result);
 
-            // ✅ Reset form before navigating
             setForm({
                 name: '',
                 idNumber: '',
@@ -70,8 +70,14 @@ export default function SignUpScreen() {
         }
     };
 
+
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <KeyboardAwareScrollView
+            contentContainerStyle={styles.container_main}
+            enableOnAndroid={true}
+            extraScrollHeight={80}
+            keyboardShouldPersistTaps="handled"
+        >
             <Text style={styles.title}>Sign Up</Text>
 
             {Object.entries(form).map(([field, value]) => (
@@ -84,9 +90,9 @@ export default function SignUpScreen() {
                 />
             ))}
 
-            <TouchableOpacity style={styles.mainButton} onPress={handleSubmit}>
+            <TouchableOpacity style={styles.bigButton} onPress={handleSubmit}>
                 <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-        </ScrollView>
+        </KeyboardAwareScrollView>
     );
 }
