@@ -20,7 +20,7 @@ namespace ParkingApiApp.Services.Hosted
                 var now = DateTime.Now;
 
                 // Run only on the 4th of the month at 08:00
-                if (now.Day == 4 && now.Hour == 22 && now.Minute == 06)
+                if (now.Day == 7 && now.Hour == 11 && now.Minute == 21)
                 {
                     using var scope = _services.CreateScope();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
