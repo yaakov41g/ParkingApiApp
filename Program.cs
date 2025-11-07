@@ -30,8 +30,13 @@ builder.Services.AddScoped<ParkingSessionService>();
 builder.Services.AddHostedService<InvoiceScheduler>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ReportService>();
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Configuration.AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true);
+builder.Services.AddSingleton(
+    provider => builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>()!
+);
 
+// רישום EmailService
+builder.Services.AddScoped<IEmailService, EmailService>();
 // Redis
 var redis = ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false");
 builder.Services.AddSingleton<IConnectionMultiplexer>(redis);

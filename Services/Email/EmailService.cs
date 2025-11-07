@@ -8,31 +8,33 @@ namespace ParkingApiApp.Services.Email
 {
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
+        private readonly EmailSettings _settings;
 
-        public EmailService(IConfiguration config, ILogger<EmailService> logger)
+        public EmailService(ILogger<EmailService> logger, EmailSettings settings)
         {
-            _config = config;
             _logger = logger;
+            _settings = settings;
         }
 
         public async Task SendInvoiceAsync(string to, string subject, string body)
         {
-            using var client = new SmtpClient("smtp.gmail.com")
+            using var client = new SmtpClient(_settings.SmtpServer)
             {
-                Credentials = new NetworkCredential("yaakov41g@gmail.com", "REMOVED"),
+                Port = _settings.Port,
+                Credentials = new NetworkCredential(_settings.Username, _settings.AppPassword),
                 EnableSsl = true
             };
 
-            var mail = new MailMessage("yaakov41g@gmail.com", to)
+            var mail = new MailMessage(_settings.Username, to)
             {
                 Subject = subject,
-                Body = body,               // ← your HTML string
-                IsBodyHtml = true,         // ✅ tells email client to render HTML
-                BodyEncoding = Encoding.UTF8,      // ✅ supports Hebrew and emojis
-                SubjectEncoding = Encoding.UTF8    // ✅ supports Hebrew subject line
+                Body = body,
+                IsBodyHtml = true,
+                BodyEncoding = Encoding.UTF8,
+                SubjectEncoding = Encoding.UTF8
             };
+
             await client.SendMailAsync(mail);
             _logger.LogInformation($"Invoice sent to {to}");
         }
@@ -46,16 +48,16 @@ namespace ParkingApiApp.Services.Email
                 await SendInvoiceAsync(account.Email, subject, body);
             }
         }
+
         private async Task<string> RenderInvoiceHtmlAsync(SessionAccountViewModel account)
         {
             var engine = new RazorLightEngineBuilder()
                 .UseFileSystemProject(Path.Combine(Directory.GetCurrentDirectory(), "Views", "EmailTemplates"))
                 .UseMemoryCachingProvider()
                 .Build();
-            //string templatePath = "Views/EmailTemplates/Invoice.cshtml";
+
             string html = await engine.CompileRenderAsync("Invoice.cshtml", account);
             return html;
         }
-
     }
 }
