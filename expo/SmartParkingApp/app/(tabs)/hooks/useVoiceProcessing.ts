@@ -1,10 +1,9 @@
 ﻿// useVoiceProcessing.ts
-
-import { useState } from 'react';
+// Custom hook to manage voice processing and zone selection for the Smart Parking App
+import { useState, Dispatch, SetStateAction } from 'react';
 import { Audio } from 'expo-av';
 import { NavigationProp } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { Dispatch, SetStateAction } from 'react';
 
 type VoiceProcessingParams = {
     navigation: NavigationProp<any>;
@@ -71,7 +70,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
             console.error('Error in convertTextToSpeech:', err);
         }
     };
-
+    // Confirm the detected city and fetch parking zones. Invoked by pressing the Confirm button.
     const Confirm = async () => {
         try {
             const response = await fetch('http://192.168.1.2:5203/api/Parking/validate-city', {

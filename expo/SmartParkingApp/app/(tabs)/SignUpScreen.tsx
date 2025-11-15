@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿// Sign up screen for new users
+import React, { useState, useEffect } from 'react';
 import {
     Text,
     TextInput,
