@@ -5,8 +5,9 @@ This project was built with extensive support from **AI Copilot**, which generat
 My role has been to understand the code (in main parts),  
 to design and refine the system — making architectural decisions,  
 improving the flow, and shaping the user experience.
+⚠️ **Documentation and final polish are still in progress.**
 
-#### Development is done using Visual Studio 22 as the primary IDE.
+Development is done using Visual Studio 22 as the primary IDE.
 ---
 
 ## 🧭 User Flow
@@ -62,7 +63,7 @@ The admin dashboard provides:
 - **Redis** – Optional caching layer  
 
 ## 🗄 Database
-- **MongoDB / MongoDB Compass** – City and zone data  
+- **MongoDB / MongoDB Compass** – Data of: car_owners, cities, city_zone_rates, parking_sessions, etc.
 
 ## 📱 Client Side (Mobile)
 - **TypeScript**  
