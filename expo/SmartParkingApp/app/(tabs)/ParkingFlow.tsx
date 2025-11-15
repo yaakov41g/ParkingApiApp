@@ -1,5 +1,5 @@
 ﻿// ParkingFlow.tsx (VoiceCityRecognizer.tsx)
-
+// Main and full implementation of the parking flow with voice recognition
 import React, { useState } from 'react';
 import { View, Text, Linking, TouchableOpacity, AppRegistry, ActivityIndicator } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
@@ -12,7 +12,7 @@ import styles from './styles';
 
 const appName = appConfig.expo.name;
 
-export default function VoiceCityRecognizer() {
+export default function VoiceCityRecognizer() { // I need to change the name here to ParkingFlow
 
     const navigation = useNavigation<NavigationProp<any>>();
     const [isDeciphering, setIsDeciphering] = useState(false);

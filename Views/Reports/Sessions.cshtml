@@ -1,4 +1,5 @@
-﻿@using ParkingApiApp.ViewModels
+﻿@* A container view of 3 tabs for tables and diagrams *@
+@using ParkingApiApp.ViewModels
 @model SessionWrapperViewModel
 
 @{
@@ -84,7 +85,6 @@
         #diagrams td {
             vertical-align: middle;
         }
-
 
     </style>
 </head>
@@ -360,7 +360,7 @@
               canvas.scrollIntoView({ behavior: "smooth", block: "start" });
             });
         });
-        //zones sessions chart
+        // parking hours per zone
         document.getElementById("viewZoneHours").addEventListener("click", function () {
           fetch(`/Diagrams/zone-hours`)
             .then(res => res.text())
@@ -386,28 +386,6 @@
               }
             });
         });
-                // zones hours chart
-                //         document.getElementById("viewZoneHours").addEventListener("click", function () {
-        //   fetch("/Diagrams/ZoneHours")
-        //     .then(res => res.text())
-        //     .then(html => {
-        //       const container = document.getElementById("chartContainer");
-        //       container.innerHTML = html;
-
-        //       const scripts = container.querySelectorAll("script");
-        //       scripts.forEach(oldScript => {
-        //         const newScript = document.createElement("script");
-        //         if (oldScript.src) {
-        //           newScript.src = oldScript.src;
-        //         } else {
-        //           newScript.textContent = oldScript.textContent;
-        //         }
-        //         document.body.appendChild(newScript);
-        //         oldScript.remove();
-        //       });
-        //     });
-        // });
-
         });
     </script>
 </body>

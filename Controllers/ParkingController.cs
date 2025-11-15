@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Main controller to handle parking-related API endpoints.
+using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;

@@ -1,5 +1,5 @@
 ﻿// components/HelpScreen.tsx
-
+// Basic help screen component with modal for assistance
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, ScrollView } from 'react-native';
 import styles from './styles';  

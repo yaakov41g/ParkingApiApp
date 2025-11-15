@@ -1,5 +1,5 @@
 ﻿// useRecordingFlow.ts
-
+// Custom hook to manage the recording of City Name for the Smart Parking App
 import { useRef, useState } from 'react';
 import { Audio } from 'expo-av';
 import { SilenceDetector } from '../Utilities/SilenceDetector';

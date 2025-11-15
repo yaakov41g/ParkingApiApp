@@ -1,4 +1,5 @@
-﻿import styles from './styles';
+﻿// Main screen of the Smart Parking App
+import styles from './styles';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
@@ -10,12 +11,9 @@ export default function MainScreen() {
 
     const handleStartParking = () => {
         setIsStarting(true);
-
         setTimeout(() => {
             setIsStarting(false);
             router.push('/(tabs)/ParkingFlow');
-
-            //navigation.navigate('ParkingFlow'); // Replace with your operational screen route
         }, 500);
     };
 
