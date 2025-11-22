@@ -19,7 +19,7 @@ export default function VoiceCityRecognizer() { // I need to change the name her
 
     const [showEndMessage, setShowEndMessage] = useState(false);
     const {
-        cityStatus,
+        textZones,
         showDigitButtons,
         startVoiceProcess,
         Confirm,
@@ -83,7 +83,7 @@ export default function VoiceCityRecognizer() { // I need to change the name her
                         <Text style={styles.squareButtonText}>סיים חניה</Text>
                     </TouchableOpacity>
 
-                    {cityStatus !== '' && <Text style={styles.statusText}>{cityStatus}</Text>}
+                    {textZones !== '' && <Text style={styles.statusText}>{textZones}</Text>}
 
                     <View style={{ position: 'absolute', bottom: 20, width: '100%', alignItems: 'center' }}>
                         {isIntroPlaying && (
