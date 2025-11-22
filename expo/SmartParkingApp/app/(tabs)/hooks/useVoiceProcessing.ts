@@ -13,7 +13,7 @@ type VoiceProcessingParams = {
 
 export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphering }: VoiceProcessingParams) {
     const [cityName, setCityName] = useState('');
-    const [cityStatus, setCityStatus] = useState('');
+    const [textZones, setTextZones] = useState('');  // For displaying text zones info
     const [showDigitButtons, setShowDigitButtons] = useState(false);
     const [zoneNames, setZoneNames] = useState<string[]>([]);
     const [englishZoneNames, setEnglishZoneNames] = useState<string[]>([]);
@@ -47,7 +47,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
             setIsDeciphering(false); // ✅ Hide spinner on error
         }
     };
-
+    // A service to convert text to speech and play the audio
     const convertTextToSpeech = async (message: string) => {
         try {
             const response = await fetch('http://192.168.1.2:5203/api/Parking/speak-the-message', {
@@ -70,7 +70,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
             console.error('Error in convertTextToSpeech:', err);
         }
     };
-    // Confirm the detected city and fetch parking zones. Invoked by pressing the Confirm button.
+    // Confirm the detected city and fetch parking zones. Invoked by pressing the Confirm(אישור) button.
     const Confirm = async () => {
         try {
             const response = await fetch('http://192.168.1.2:5203/api/Parking/validate-city', {
@@ -84,23 +84,22 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
                 await convertTextToSpeech(errorData.message || 'שגיאה לא ידועה.');
                 return;
             }
-
             const data = await response.json();
+            //We need hebre zone names for user info of zone confirmation and english zone names for backend processing
+            const rawZones = data.hebrewZones//.map((z: string) => {
+            //    const match = z.match(/ל־(.+)$/);
+            //    return match ? match[1] : z;
+            //});
 
-            const rawZones = data.hebrewZones.map((z: string) => {
-                const match = z.match(/ל־(.+)$/);
-                return match ? match[1] : z;
-            });
-
-            const englishRawZones = data.zones.map((z: string) => {
-                const match = z.match(/to(.+)$/);
-                return match ? match[1] : z;
-            });
-
+            const englishRawZones = data.zones//.map((z: string) => {
+            //    const match = z.match(/to(.+)$/);
+            //    return match ? match[1] : z;
+            //});
+            console.log('✅✅✅✅((((((((((((()))))))))))');
             setEnglishZoneNames(englishRawZones);
             setZoneNames(rawZones);
             await convertTextToSpeech(data.message);
-            setCityStatus(data.message);
+            setTextZones(data.message);
 
             setTimeout(() => {
                 setShowDigitButtons(true);
@@ -110,7 +109,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
             console.error('Error in Confirm:', err);
         }
     };
-
+    // Handle digit button presses for zone selection
     const HandleDigitPress = async (digit: number) => {
         if (digit === 0) {
             try {
@@ -124,7 +123,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
                 }
 
                 await convertTextToSpeech('החניה בוטלה. חזור להתחלה.');
-                setCityStatus('');
+                setTextZones('');
                 setShowDigitButtons(false);
                 router.push('/');
             } catch (err) {
@@ -158,7 +157,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
 
             setTimeout(async () => {
                 await sound.unloadAsync();
-                setCityStatus('');
+                setTextZones('');
                 setShowDigitButtons(false);
 
                 const startSessionResponse = await fetch(
@@ -175,11 +174,11 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
             }, 5000);
         } catch (err) {
             console.error('Error playing zone name or starting session:', err);
-            setCityStatus('');
+            setTextZones('');
             setShowDigitButtons(false);
         }
     };
-
+    // Stop the parking session and complete database operations adding EndTime
     const StopParkingSession = async () => {
         try {
             const response = await fetch('http://192.168.1.2:5203/api/parking/end-session', {
@@ -219,7 +218,7 @@ export function useVoiceProcessing({ navigation, setShowEndMessage, setIsDeciphe
 
     return {
         cityName,
-        cityStatus,
+        textZones,
         showDigitButtons,
         startVoiceProcess,
         convertTextToSpeech,

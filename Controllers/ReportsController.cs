@@ -1,10 +1,10 @@
 ﻿// Handle HTTP requests for generating parking session reports of tables and diagrams.
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using ParkingApiApp.Models;
-using ParkingApiApp.ViewModels;
+//using ParkingApiApp.Models;
+//using ParkingApiApp.ViewModels;
 using ParkingApiApp.Services;
-using System.Runtime.Intrinsics.X86;
+//using System.Runtime.Intrinsics.X86;
 using Newtonsoft.Json;
 
 namespace ParkingApiApp.Controllers

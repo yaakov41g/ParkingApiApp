@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using ParkingApiApp.Models;
 using ParkingApiApp.Services;
-using ParkingApiApp.Utilities;
+//using ParkingApiApp.Utilities;
 using StackExchange.Redis;
-using System.Media;
+//using System.Media;
 using System.Text;
-using ZstdSharp;
+//using ZstdSharp;
 
 namespace ParkingApiApp.Controllers
 {
@@ -17,26 +17,26 @@ namespace ParkingApiApp.Controllers
     {
         private readonly TranslationService _translationService;
         private readonly CityService _cityService;
-        private readonly TexToSpeechService _tts;
-        private readonly IMongoCollection<City> _cityCollection;
+        private readonly TexToSpeechService _textToSpeechService;
+        //private readonly IMongoCollection<City> _cityCollection;
         private readonly AudioConversionService _audioConverter;
         private readonly ILogger<ParkingController> _logger;
         private readonly IDatabase _redisDb;
         private readonly SpeechToTextService _speechToTextService;
-        private static readonly Dictionary<string, ParkingSessionRequest> _sessionData = new();
+        private static readonly Dictionary<string, ParkingSessionRequest> _sessionData = new();// In-memory session data keyed by phone number to store ongoing parking session info
         private readonly ParkingSessionService _parkingSessionService;
         private readonly CarOwnerRegistrationService _carOwnerService;
-        private const string phoneNumber = "05311133322"; //For testing purposes, replace with getting it Twilio query param
+        private const string phoneNumber = "0528885555"; //For testing purposes, replace with Twilio number
         public ParkingController(SpeechToTextService speechToTextService, ILogger<ParkingController> logger,
-            AudioConversionService audioConverter, IMongoCollection<City> cityCollection, ParkingSessionService parkingSessionService,
-            TexToSpeechService tts, CityService cityService, TranslationService translationService,
+            AudioConversionService audioConverter/*, IMongoCollection<City> cityCollection*/, ParkingSessionService parkingSessionService,
+            TexToSpeechService textToSpeechService, CityService cityService, TranslationService translationService,
             CarOwnerRegistrationService carOwnerService, IConnectionMultiplexer redis)
         {
-            _tts = tts;
+            _textToSpeechService = textToSpeechService;
             _speechToTextService = speechToTextService;
             _audioConverter = audioConverter;
             _logger = logger;
-            _cityCollection = cityCollection;
+            //_cityCollection = cityCollection;
             _cityService = cityService;
             _translationService = translationService;
             _parkingSessionService = parkingSessionService;
@@ -54,7 +54,7 @@ namespace ParkingApiApp.Controllers
             {
                 // 🔊 Generate TTS message for unregistered user
                 var ttsMessage = "אינך רשום עדיין. אנא מָלֵא את פְּרַטֶיךָ כדי להפעיל את החניה.";
-                var ttsPath = await _tts.GenerateHebrewVoiceAsync(ttsMessage); // Returns full file path
+                var ttsPath = await _textToSpeechService.GenerateHebrewVoiceAsync(ttsMessage); // Returns full file path
 
                 // Convert full path to relative URI for frontend
                 var relativeUri = ttsPath.Replace("C:\\ASP\\ParkingApiApp\\wwwroot", "").Replace("\\", "/");
@@ -66,8 +66,8 @@ namespace ParkingApiApp.Controllers
                     isRegistered = false
                 });
             }
-
             // ✅ Registered user: send welcome intro
+
             if (!_sessionData.ContainsKey(phoneNumber))
             {
                 _sessionData[phoneNumber] = new ParkingSessionRequest
@@ -86,7 +86,7 @@ namespace ParkingApiApp.Controllers
                 isRegistered = true
             });
         }
-
+        // Endpoint to receive and process user audio input of city name
         [HttpPost("listen-to-user")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ListenToUser([FromForm] IFormFile file)
@@ -127,7 +127,7 @@ namespace ParkingApiApp.Controllers
 
             return Ok(new { city = transcript });
         }
-
+        // Endpoint to generate TTS audio for a given text message
         [HttpPost("speak-the-message")]
         public async Task<IActionResult> SpeakMessage([FromBody] string message)
         {
@@ -137,7 +137,7 @@ namespace ParkingApiApp.Controllers
             try
             {
                 // Use your existing TTS service
-                var filePath = await _tts.GenerateHebrewVoiceAsync(message); // returns full path
+                var filePath = await _textToSpeechService.GenerateHebrewVoiceAsync(message); // returns full path
                 // Convert to relative path for client
                 var fileName = Path.GetFileName(filePath);
                 var relativePath = $"/TTS/{fileName}";
@@ -149,14 +149,14 @@ namespace ParkingApiApp.Controllers
                 return StatusCode(500, "Error during TTS generation");
             }
         }
-
+        //
         [HttpPost("validate-city")]
         public async Task<IActionResult> ValidateCity([FromBody] string cityName)
         {
             if (!_sessionData.TryGetValue(phoneNumber, out var session))
                 return NotFound("Session not found for this phone number.");
-            //_logger.LogInformation($"Validating city: {cityName}");
-            session.City = cityName;
+            _logger.LogInformation($"@@@@@@@@@@@@@@@@@@@@@22222222222  : {cityName}");
+            //session.City = cityName;
             if (string.IsNullOrWhiteSpace(cityName))
             {
                 return NotFound(new
@@ -173,7 +173,7 @@ namespace ParkingApiApp.Controllers
                     message = "העיר לא נמצאה. אנא נסה שוב או נסה עיר אחרת."
                 });
             }
-            session.City = city.Name;
+            session.City = city.Name; // Storing the city name in the Dictionary(ParkingSessionRequest)
 
             System.IO.File.AppendAllText("log.txt", $"City name : {city.Name}\n", Encoding.UTF8);
 
