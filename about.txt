@@ -1,0 +1,6 @@
+This is the newest repo of the cellular parking app.
+The app password was removed from the commits and some commits and evev currently files were deleted.
+The original project which ran is in C:\DiskOnkey\ProjectsCS\OldParkingApiApp.
+Pay attention that the app password there is not updated and we cann't send email by the app.
+(The app password is stored somewhere in %APPDATA%\Microsoft\UserSecrets\<UserSecretsId>\secrets.json
+ and binded automaticaly to ParkingApiApp.Services.Email / EmailSettings(.cs).AppPassword).

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <UserSecretsId>CellularParkingApp-123456</UserSecretsId>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <PreserveCompilationContext>true</PreserveCompilationContext>
 

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\ASP\\ParkingApiApp\\ParkingApiApp.csproj": {}
+    "C:\\ASP\\CellularParkingApp\\ParkingApiApp.csproj": {}
   },
   "projects": {
-    "C:\\ASP\\ParkingApiApp\\ParkingApiApp.csproj": {
+    "C:\\ASP\\CellularParkingApp\\ParkingApiApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\ASP\\ParkingApiApp\\ParkingApiApp.csproj",
+        "projectUniqueName": "C:\\ASP\\CellularParkingApp\\ParkingApiApp.csproj",
         "projectName": "ParkingApiApp",
-        "projectPath": "C:\\ASP\\ParkingApiApp\\ParkingApiApp.csproj",
+        "projectPath": "C:\\ASP\\CellularParkingApp\\ParkingApiApp.csproj",
         "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\ASP\\ParkingApiApp\\obj\\",
+        "outputPath": "C:\\ASP\\CellularParkingApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -71,9 +71,13 @@
               "target": "Package",
               "version": "[3.5.0, )"
             },
+            "RazorLight": {
+              "target": "Package",
+              "version": "[2.3.1, )"
+            },
             "StackExchange.Redis": {
               "target": "Package",
-              "version": "[2.9.17, )"
+              "version": "[2.9.32, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -110,7 +114,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
