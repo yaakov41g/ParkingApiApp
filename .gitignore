@@ -3,6 +3,8 @@ Secrets/
 .vs/
 appsettings.json
 appsettings.Development.json
+CellularParkingApp.csproj.user
+*.user
 
 # Node and Expo
 node_modules/
@@ -53,5 +55,15 @@ app-example
 /ios
 /android
 
+# Ignore build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.log
 
+# Ignore docx files
+*.docx
 
+# Ignore private project information
+about.txt
