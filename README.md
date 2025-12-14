@@ -4,7 +4,7 @@ with an ASP.NET Core backend and a React Native mobile client.
 This project was built with extensive support from **AI Copilot**, which generated the code.  
 My role has been to understand the code (in main parts),  
 to design and refine the system — making architectural decisions,  
-improving the flow, and shaping the user experience.
+improving the flow, and shaping the user experience.  
 ⚠️ Repository Notice  
 This repository has undergone a history rewrite due to sensitive data that was mistakenly committed.  
 As a result, some commits may have been automatically omitted during the cleanup process.
