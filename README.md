@@ -5,7 +5,9 @@ This project was built with extensive support from **AI Copilot**, which generat
 My role has been to understand the code (in main parts),  
 to design and refine the system — making architectural decisions,  
 improving the flow, and shaping the user experience.
-⚠️ **Documentation and final polish are still in progress.**
+⚠️ Repository Notice  
+This repository has undergone a history rewrite due to sensitive data that was mistakenly committed.  
+As a result, some commits may have been automatically omitted during the cleanup process.
 
 Development is done using Visual Studio 22 as the primary IDE.
 ---
