@@ -10,7 +10,9 @@ using ParkingApiApp.Utilities;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Secrets/parkingapp-473913-84210e5927a9.json");
+//*** The line was changed to set the environment variable for Google credentials ***
+//***Not tested fully yet
+var credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
 // Add services
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
